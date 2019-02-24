@@ -1,0 +1,67 @@
+#! /bin/sh
+#chkconfig:  2345 81 96
+#description: start zipkin
+
+# path: /etc/init.d/zipkind
+# description: process zipkin node service
+# processname: zipkind
+
+SERVICE_USER_NAME=SOFTWARE_USER_NAME
+SERVICE_INSTALL_PATH=SOFTWARE_INSTALL_PATH
+SERVICE_PROCESS_NAME=zipkin.jar
+
+case "$1" in
+    start)
+		process_id=`ps -ef|grep -i "${SERVICE_PROCESS_NAME}" |grep -v "grep"|awk '{print $2}'`
+		if [ -z "${process_id}" ];then
+        	echo "Starting service..."
+
+            su - ${SERVICE_USER_NAME}  -c "nohup java -jar ${SERVICE_INSTALL_PATH}/zipkin.jar --zipkin.collector.sample-rate=ZIPKIN_COLLECTOR_SAMPLE_RATE \
+                                                                           --zipkin.collector.kafka.bootstrap-servers=ZIPKIN_KAFKA_BOOTSTRAP_SERVERS \
+                                                                           --zipkin.storage.elasticsearch.hosts=ZIPKIN_ES_HOSTS \
+                                                                           --server.address=ZIPKIN_HOST \
+                                                                           --zipkin.server.port=ZIPKIN_QUERY_PORT >> SOFTWARE_LOG_PATH/run.log &"
+
+            # debug add: --logging.level.zipkin=trace --logging.level.zipkin2=trace --logging.level.com.datastax.driver.core=debug
+
+            sleep 2
+            process_id=`ps -ef|grep -i "${SERVICE_PROCESS_NAME}" |grep -v "grep"|awk '{print $2}'`
+            if [ -z "${process_id}" ];then
+                echo "Start service error!"
+                exit 1
+            else
+                echo "Start service success!"
+            fi
+		else
+			echo "Service is running!"
+        fi
+    ;;
+	stop)
+		echo "Shutting down service..."
+		process_id=`ps -ef|grep -i "${SERVICE_PROCESS_NAME}" |grep -v "grep"|awk '{print $2}'`
+		if [ -z "${process_id}" ];then
+	        echo "There is no service running!"
+     	else
+            kill -9 ${process_id}
+            echo "Service " ${process_id} " is killed!"
+     	fi
+        sleep 5
+        echo "Service stop success!"
+    ;;
+	restart)
+        $0 stop
+        sleep 5
+        $0 start
+    ;;
+	status)
+		process_id=`ps -ef|grep -i "${SERVICE_PROCESS_NAME}" |grep -v "grep"|awk '{print $2}'`
+		if [ -z "${process_id}" ];then
+			echo "Service is not running!"
+			exit 1
+		else
+			echo "Service is running!"
+			exit 0
+		fi
+	;;
+esac
+

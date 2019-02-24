@@ -1,0 +1,26 @@
+#! /bin/sh
+#chkconfig:  2345 81 96
+#description: start nexus
+
+# path: /etc/init.d/nexusd
+# description: process nexus node service
+# processname: nexusd
+
+SERVICE_USER_NAME=SOFTWARE_USER_NAME
+SERVICE_INSTALL_PATH=SOFTWARE_INSTALL_PATH
+
+case "$1" in
+    start)
+		su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/bin/nexus start"
+    ;;
+	stop)
+		su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/bin/nexus stop"
+    ;;
+	restart)
+	    su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/bin/nexus restart"
+    ;;
+	status)
+		su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/bin/nexus status"
+	;;
+esac
+
