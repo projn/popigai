@@ -20,7 +20,7 @@ function check_install()
 {
     echo "Check install package ..."
 
-    install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}.tar.gz
+    install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
     check_file ${install_package_path}
     if [ $? != 0 ]; then
     	echo "Install package ${install_package_path} do not exist."
