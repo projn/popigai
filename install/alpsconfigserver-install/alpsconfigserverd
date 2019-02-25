@@ -1,12 +1,12 @@
 #! /bin/sh
 #chkconfig:  2345 81 96
-#description: start alpsmicroservice
+#description: start alpsconfigserver
 
-# path: /etc/init.d/alpsmicroserviced
+# path: /etc/init.d/alpsconfigserverd
 # description: process alps micro service
-# processname: alpsmicroserviced
+# processname: alpsconfigserverd
 
-SERVICE_PACKAGE_NAME=alpsmicroservice
+SERVICE_PACKAGE_NAME=alpsconfigserver
 SERVICE_INSTALL_PATH=SOFTWARE_INSTALL_PATH
 SERVICE_USER_NAME=SOFTWARE_USER_NAME
 SERVICE_PROCESS_NAME=SOFTWARE_JAR_NAME
@@ -18,7 +18,7 @@ case "$1" in
 		if [ -z "${process_id}" ];then
 			echo "Starting service..."
 			
-            su - ${SERVICE_USER_NAME} -c "nohup java -jar -Xmx4g -Dconfig.dir=${SERVICE_INSTALL_PATH}/context ${SERVICE_INSTALL_PATH}/${SERVICE_JAR_NAME} --spring.config.location=${SERVICE_INSTALL_PATH}/context/bootstrap.properties ${SERVICE_INSTALL_PATH}/module 1>/dev/null 2>/dev/null & "
+            su - ${SERVICE_USER_NAME} -c "nohup java -jar -Xmx4g -Dconfig.dir=${SERVICE_INSTALL_PATH}/context ${SERVICE_INSTALL_PATH}/${SERVICE_JAR_NAME} --spring.config.location=${SERVICE_INSTALL_PATH}/context/bootstrap.properties 1>/dev/null 2>/dev/null & "
             sleep 10
             process_id=`ps -ef|grep -i "${SERVICE_PROCESS_NAME}" |grep -v "grep"|awk '{print $2}'`
             if [ -z "${process_id}" ];then
