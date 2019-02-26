@@ -1,13 +1,16 @@
 pipeline {
-   agent any
-   environment {
-     def server = ''
-   }
-   stages {
-     stage('upload') {
-       steps {
-         sshCommand remote: remote, command: "ls -lrt"
-       }
-     }
-   }
- }
+  agent any
+  stages {
+    stage('upload') {
+      environment {
+        remote = '[:]'
+      }
+      steps {
+        sshCommand(remote: remote, command: 'ls -lrt', sudo: true)
+      }
+    }
+  }
+  environment {
+    server = ''
+  }
+}
