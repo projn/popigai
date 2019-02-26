@@ -3,7 +3,7 @@ pipeline {
    stages {
      stage('upload') {
        environment {
-         remote = [:]
+         remote = ''
          remote.name = 'master'
          remote.host = '192.168.37.134'
          remote.user = 'root'
