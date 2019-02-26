@@ -18,7 +18,9 @@ pipeline {
    stages {
         stage('init') {
           steps {
-            remote=getHost()
+            script {
+              remote=getHost()
+            }
           }
         }
      stage('upload') {
