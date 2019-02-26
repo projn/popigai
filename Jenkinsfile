@@ -1,9 +1,10 @@
+!groovy
 pipeline {
    agent any
    stages {
      stage('upload') {
        environment {
-         remote = ''
+         def remote = [:]
          remote.name = 'master'
          remote.host = '192.168.37.134'
          remote.user = 'root'
