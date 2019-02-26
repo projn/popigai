@@ -1,5 +1,3 @@
-!groovy
-
 def getHost() {
   def remote = [:]
    remote.name = 'master'
