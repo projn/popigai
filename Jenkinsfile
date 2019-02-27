@@ -11,7 +11,6 @@ pipeline {
       steps {
         sh '''cd docker-install;\\
               sh install.sh --install'''
-        }
 
       }
     }
