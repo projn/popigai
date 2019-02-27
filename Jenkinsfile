@@ -1,4 +1,3 @@
-#!groovy
 pipeline {
   agent {
     node {
@@ -14,7 +13,7 @@ pipeline {
           local.name = 'local'
           local.host = 'localhost'
           local.user = 'root'
-          local.password = System.getenv("LOCAL_HOST_ROOT_PWD")
+          local.password = '123456'
           local.allowAnyHosts = true
 
           sshPut remote:local, from:"./install/maven-install", into:"."
@@ -26,7 +25,6 @@ pipeline {
       }
     }
   }
-
   environment {
     LOCAL_HOST_ROOT_PWD = '123456'
   }
