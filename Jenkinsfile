@@ -8,12 +8,12 @@ pipeline {
         }
 
       }
-
       steps {
         script {
           cd docker-install
           sh install.sh --install
         }
+
       }
     }
   }
