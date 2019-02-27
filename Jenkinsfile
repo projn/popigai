@@ -16,7 +16,7 @@ pipeline {
           local.name = 'local'
           local.host = 'localhost'
           local.user = 'root'
-          local.password = ${LOCAL_HOST_ROOT_PWD}
+          local.password = '123456'
           local.allowAnyHosts = true
 
           sshPut remote:local,from:"./install/docker-install",into:"."
