@@ -3,10 +3,7 @@ pipeline {
     node {
       label 'dev'
     }
-  }
 
-  environment {
-    LOCAL_HOST_ROOT_PWD='123456'
   }
   stages {
     stage('prepare jenkins') {
@@ -22,7 +19,11 @@ pipeline {
           sshPut remote:local,from:"./install/docker-install",into:"."
           sshCommand remote:local, command:"cd ~/docker-install;sh install.sh --install"
         }
+
       }
     }
+  }
+  environment {
+    LOCAL_HOST_ROOT_PWD = '123456'
   }
 }
