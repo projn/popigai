@@ -2,6 +2,15 @@ pipeline {
   agent any
   stages {
     stage('upload') {
+      agent {
+        node {
+          label 'repo.projn.com'
+        }
+
+      }
+      environment {
+        REPO_HOST = '192.168.37.134'
+      }
       steps {
         script {
           environment {
