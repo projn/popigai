@@ -1,24 +1,22 @@
 pipeline {
-  agent any
+  agent {
+    node {
+      label 'dev'
+    }
+  }
+
+  environment {
+    LOCAL_HOST_ROOT_PWD='123456'
+  }
   stages {
     stage('prepare jenkins') {
-      agent {
-        node {
-          label 'dev'
-        }
-      }
-
-      environment {
-        LOCAL_HOST_ROOT_PWD='123456'
-      }
-
       steps {
         script {
           def local = [:]
           local.name = 'local'
           local.host = 'localhost'
           local.user = 'root'
-          local.password = $LOCAL_HOST_ROOT_PWD
+          local.password = ${LOCAL_HOST_ROOT_PWD}
           local.allowAnyHosts = true
 
           sshPut remote:local,from:"./install/docker-install",into:"."
