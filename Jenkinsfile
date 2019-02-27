@@ -6,10 +6,9 @@ pipeline {
         node {
           label 'dev'
         }
-
       }
       steps {
-        sh '''cd docker-install;\\
+        sh '''cd ./installdocker-install;\\
               sh install.sh --install'''
 
       }
