@@ -14,7 +14,7 @@ pipeline {
           local.name = 'local'
           local.host = 'localhost'
           local.user = 'root'
-          local.password = System.getenv("LOCAL_HOST_ROOT_PWD")
+          local.password = env.LOCAL_HOST_ROOT_PWD
           local.allowAnyHosts = true
 
           sshPut remote:local, from:"./install/maven-install", into:"."
