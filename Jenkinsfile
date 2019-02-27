@@ -13,7 +13,7 @@ pipeline {
           local.name = 'local'
           local.host = 'localhost'
           local.user = 'root'
-          local.password = '123456'
+          local.password = manager.getEnvVariable("LOCAL_HOST_ROOT_PWD")
           local.allowAnyHosts = true
 
           sshPut remote:local,from:"./install/docker-install",into:"."
