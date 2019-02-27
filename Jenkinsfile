@@ -7,7 +7,7 @@ pipeline {
 
   }
   stages {
-    stage('jenkins compose env') {
+    stage('install jenkins compose env') {
       steps {
         script {
           def local = [:]
