@@ -92,6 +92,7 @@ function install()
     yum repolist
     yum install -y docker-ce
     mkdir -p /etc/docker
+    rm -rf /etc/docker/daemon.json
     echo "{"  >> /etc/docker/daemon.json
     echo '"registry-mirrors": ["https://5q5g7ksn.mirror.aliyuncs.com"]'  >> /etc/docker/daemon.json
     echo "}"  >> /etc/docker/daemon.json
