@@ -7,13 +7,18 @@ pipeline {
           label 'dev'
         }
       }
+
+      environment {
+        LOCAL_HOST_ROOT_PWD='123456'
+      }
+
       steps {
         script {
           def local = [:]
           local.name = 'local'
-          local.host = '192.168.37.133'
+          local.host = 'localhost'
           local.user = 'root'
-          local.password = '123456'
+          local.password = $LOCAL_HOST_ROOT_PWD
           local.allowAnyHosts = true
 
           sshPut remote:local,from:"./install/docker-install",into:"."
