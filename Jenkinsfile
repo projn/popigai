@@ -8,7 +8,7 @@ pipeline {
         }
       }
       steps {
-        sh '''cd ./installdocker-install;\\
+        sh '''cd ./install/docker-install;\\
               sh install.sh --install'''
 
       }
