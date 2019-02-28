@@ -215,8 +215,16 @@ opt=$1
 if [ "${opt}" == "--package" ]; then
     package
 elif [ "${opt}" == "--install" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
     install
 elif [ "${opt}" == "--uninstall" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
     uninstall
 elif [ "${opt}" == "--help" ]; then
     usage

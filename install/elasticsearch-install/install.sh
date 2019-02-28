@@ -240,13 +240,22 @@ opt=$1
 if [ "${opt}" == "--package" ]; then
     package
 elif [ "${opt}" == "--install" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
     install
+
     if [ $? != 0 ]; then
         echo "Install failed,check it please."
         return 1
     fi
     config
 elif [ "${opt}" == "--uninstall" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
     uninstall
 elif [ "${opt}" == "--help" ]; then
     usage
