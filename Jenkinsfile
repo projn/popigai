@@ -31,8 +31,8 @@ pipeline {
         stage('install jenkins') {
           steps {
             sh '''
-            if[ -f "./install/maven-install/apache-maven-3.6.0-bin.tar.gz"]; then
-              echo "hello"
+            if[ -f "./install/maven-install/apache-maven-3.6.0-bin.tar.gz"]; then \\
+              echo "hello" \\
             fi'''
 
             script {
