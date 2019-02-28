@@ -18,8 +18,6 @@ function usage()
 
 function check_install()
 {
-    echo "Check install package ..."
-
     install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
     check_file ${install_package_path}
     if [ $? != 0 ]; then
@@ -33,8 +31,6 @@ function check_install()
     	echo "Install config ${install_config_path} do not exist."
       return 1
     fi
-    
-    echo "Check finish."
     return 0
 }
 
@@ -78,7 +74,6 @@ function check_dir()
 
 function install()
 {
-    echo "Begin install..."
     check_install
     if [ $? != 0 ]; then
         echo "Check install failed,check it please."
@@ -113,6 +108,8 @@ function install()
 
     source /etc/profile
 
+    echo "Install success,use cmd 'source /etc/profile' to make it in use."
+
     return 0
 }
 
@@ -122,17 +119,15 @@ function package() {
 
 function uninstall()
 {
-    echo "Uninstall enter ..."
-    
     rm -rf ${SOFTWARE_INSTALL_PATH}
     
-    echo "Uninstall leave ..."
+    echo "Uninstall success."
     return 0
 }
 
 if [ ! `id -u` = "0" ]; then
     echo "Please run as root user"
-    exit 5
+    exit 1
 fi
 
 if [ $# -eq 0 ]; then
@@ -145,8 +140,18 @@ opt=$1
 if [ "${opt}" == "--package" ]; then
     package
 elif [ "${opt}" == "--install" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
+
     install
 elif [ "${opt}" == "--uninstall" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
+
     uninstall
 elif [ "${opt}" == "--help" ]; then
     usage

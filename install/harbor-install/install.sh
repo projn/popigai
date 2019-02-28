@@ -13,21 +13,16 @@ function usage()
     echo ""
     echo "  --package               : package."
     echo "  --install               : install."
-    echo "  --uninstall             : uninstall."
 }
 
 function check_install()
 {
-    echo "Check install package ..."
-
     install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
     check_file ${install_package_path}
     if [ $? != 0 ]; then
     	echo "Install package ${install_package_path} do not exist."
       return 1
     fi
-
-    echo "Check finish."
     return 0
 }
 
@@ -71,7 +66,6 @@ function check_dir()
 
 function install()
 {
-    echo "Begin install..."
     check_install
     if [ $? != 0 ]; then
         echo "Check install failed,check it please."
@@ -144,8 +138,6 @@ function install()
 
 function config()
 {
-    echo "Start to config service ..."
-
     config_path=${SOFTWARE_INSTALL_PATH}/harbor.cfg
 
     src='reg.mydomain.com'
@@ -172,17 +164,12 @@ function config()
 
     sh ${SOFTWARE_INSTALL_PATH}/install.sh --with-clair --with-chartmuseum
 
-    echo "Config service success,use cmd 'docker-compose stop/start' to manage status in install path."
+    echo "Install success,use cmd 'docker-compose stop/start' to manage status in install path."
 }
 
 function package() {
     wget https://storage.googleapis.com/harbor-releases/release-${SOFTWARE_SOURCE_PACKAGE_VERSION}/${SOFTWARE_SOURCE_PACKAGE_NAME}
 }
-
-if [ ! `id -u` = "0" ]; then
-    echo "Please run as root user"
-    exit 5
-fi
 
 if [ $# -eq 0 ]; then
     usage
@@ -194,11 +181,17 @@ opt=$1
 if [ "${opt}" == "--package" ]; then
     package
 elif [ "${opt}" == "--install" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
+
     install
     if [ $? != 0 ]; then
         echo "Install failed,check it please."
-        return 1
+        return 2
     fi
+
     config
 elif [ "${opt}" == "--help" ]; then
     usage
