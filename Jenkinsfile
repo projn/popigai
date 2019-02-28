@@ -1,12 +1,8 @@
 pipeline {
-  agent {
-    node {
-      label 'dev'
-    }
-
-  }
+  agent any
+  
   stages {
-    stage('install build env') {
+    stage('install develop env') {
       steps {
         script {
           def local = [:]
