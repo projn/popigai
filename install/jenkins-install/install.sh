@@ -164,6 +164,12 @@ function config()
 }
 
 function package() {
+    install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+    check_file ${install_package_path}
+    if [ $? == 0 ]; then
+    	echo "Package file ${install_package_path} exists."
+      return 0
+    fi
     wget https://mirrors.tuna.tsinghua.edu.cn/jenkins/war-stable/${SOFTWARE_SOURCE_PACKAGE_VERSION}/jenkins.war
 }
 
