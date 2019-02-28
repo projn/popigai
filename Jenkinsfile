@@ -25,7 +25,6 @@ pipeline {
 
           steps {
             sh '''cd ./install/harbor-install; \\
-                  sh install.sh --package; \\
                   echo "HARBOR_HOST=${HARBOR_HOST}" >> config.properties; \\
                   echo "HARBOR_SSH_FLAG=${HARBOR_SSH_FLAG}" >> config.properties'''
 
@@ -61,9 +60,7 @@ pipeline {
 
           steps {
             sh '''cd ./install/maven-install; \\
-                  sh install.sh --package'''
             sh '''cd ./install/nexus-install; \\
-                  sh install.sh --package; \\
                   echo "NEXUS_BIND_IP=${NEXUS_BIND_IP}" >> config.properties; \\
                   echo "NEXUS_PORT=${NEXUS_PORT}" >> config.properties'''
 
