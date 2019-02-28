@@ -30,15 +30,10 @@ pipeline {
 
         stage('install jenkins') {
           steps {
+            if[ -f "./install/maven-install/apache-maven-3.6.0-bin.tar.gz"]; then
+              sh '''echo "hello"'''
+            fi
             script {
-              File file = new File("./install/maven-install/apache-maven-3.6.0-bin.tar.gz");
-              if(!file.exists())
-              {
-                sh(returnStdout: true, script: 'cd ./install/jenkins-install; sh install.sh --package')
-              }
-
-              sh(returnStdout: true, script: 'cd ./install/jenkins-install; sh install.sh --package; echo "JENKINS_BIND_IP=${JENKINS_BIND_IP}" >> config.properties; echo "JENKINS_PORT=${JENKINS_PORT}" >> config.properties')
-
               def host = [:]
               host.name = 'jenkins'
               host.host = env.REMOTE_HOST_IP
