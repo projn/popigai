@@ -1,5 +1,10 @@
 pipeline {
   agent any
+  environment {
+    INSTALL_HARBOR_FLAG='true'
+    INSTALL_NEXUS_FLAG='true'
+  }
+
   stages {
     stage('repo') {
       parallel {
@@ -14,7 +19,7 @@ pipeline {
 
           when {
             not {
-              environment name: 'REMOTE_HOST_IP', value: ''
+              environment name: 'INSTALL_HARBOR_FLAG', value: 'false'
             }
           }
 
@@ -50,9 +55,10 @@ pipeline {
 
           when {
             not {
-              environment name: 'REMOTE_HOST_IP', value: ''
+              environment name: 'INSTALL_NEXUS_FLAG', value: 'false'
             }
           }
+
           steps {
             sh 'cd ./install/openjdk-install'
             sh 'sh install --package'
