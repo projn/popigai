@@ -1,29 +1,65 @@
 pipeline {
   agent any
-  
-  stages {
-    stage('install develop env') {
-      steps {
-        script {
-          def local = [:]
-          local.name = 'local'
-          local.host = 'localhost'
-          local.user = 'root'
-          local.password = env.LOCAL_HOST_ROOT_PWD
-          local.allowAnyHosts = true
-
-          sshCommand remote:local, command:"rm -rf ~/maven-install"
-          sshPut remote:local, from:"./install/maven-install", into:"."
-          sshCommand remote:local, command:"cd ~/maven-install;sh install.sh --package;sh install.sh --install"
-          sshPut remote:local, from:"./install/docker-install", into:"."
-          sshCommand remote:local, command:"cd ~/docker-install;sh install.sh --install"
-        }
-
-      }
-    }
+  environment {
+    REMOTE_HOST_IP='192.168.37.XXX'
+    REMOTE_HOST_USER='root'
+    REMOTE_HOST_PWD='123456'
+    JENKINS_BIND_IP=192.168.37.XXX
+    JENKINS_PORT=8081
   }
 
-  environment {
-    LOCAL_HOST_ROOT_PWD = '123456'
+  stages {
+    stage('build') {
+      parallel {
+        stage('install docker') {
+            script {
+              def host = [:]
+              host.name = 'docker'
+              host.host = env.REMOTE_HOST_IP
+              host.user = env.REMOTE_HOST_USER
+              host.password = env.REMOTE_HOST_PWD
+              host.allowAnyHosts = 'true'
+
+              sshCommand remote:host, command:"rm -rf ~/docker-install"
+              sshPut remote:host, from:"./install/docker-install", into:"."
+              sshCommand remote:host, command:"cd ~/docker-install;sh install.sh --install"
+            }
+          }
+        }
+
+        stage('install jenkins') {
+          steps {
+            sh '''cd ./install/maven-install; \\
+                  sh install.sh --package'''
+            sh '''cd ./install/jenkins-install; \\
+                  sh install.sh --package; \\
+                  echo "JENKINS_BIND_IP=${JENKINS_BIND_IP}" >> config.properties; \\
+                  echo "JENKINS_PORT=${JENKINS_PORT}" >> config.properties'''
+
+            script {
+              def host = [:]
+              host.name = 'jenkins'
+              host.host = env.REMOTE_HOST_IP
+              host.user = env.REMOTE_HOST_USER
+              host.password = env.REMOTE_HOST_PWD
+              host.allowAnyHosts = 'true'
+
+              sshCommand remote:host, command:"rm -rf ~/openjdk-install"
+              sshPut remote:host, from:"./install/openjdk-install", into:"."
+              sshCommand remote:host, command:"cd ~/openjdk-install;sh install.sh --install"
+
+              sshCommand remote:host, command:"rm -rf ~/maven-install"
+              sshPut remote:host, from:"./install/maven-install", into:"."
+              sshCommand remote:host, command:"cd ~/maven-install;sh install.sh --install"
+
+              sshCommand remote:host, command:"source /etc/profile"
+
+              sshPut remote:host, from:"./install/jenkins-install", into:"."
+              sshCommand remote:host, command:"cd ~/jenkins-install;sh install.sh --install"
+            }
+          }
+        }
+      }
+    }
   }
 }
