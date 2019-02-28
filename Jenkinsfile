@@ -56,7 +56,7 @@ pipeline {
               for(int i=0; i<hostList.length; i++) {
                 String hostIp=hostList[i]
 
-                sh 'echo "${hostIp}"'
+                sh '''echo ${hostIp}'''
 
                 def host = [:]
                 host.name = 'config'
