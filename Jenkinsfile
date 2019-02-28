@@ -29,14 +29,19 @@ pipeline {
 
         stage('install jenkins') {
           steps {
-            sh '''cd ./install/maven-install; \\
-                  sh install.sh --package'''
-            sh '''cd ./install/jenkins-install; \\
-                  sh install.sh --package; \\
-                  echo "JENKINS_BIND_IP=${JENKINS_BIND_IP}" >> config.properties; \\
-                  echo "JENKINS_PORT=${JENKINS_PORT}" >> config.properties'''
-
             script {
+              file_name=sh(returnStdout: true, script: 'find ./install/maven-install/ "*.tar.gz"')
+              if(file_name == '')
+              {
+                sh '''cd ./install/jenkins-install; \\
+                      sh install.sh --package'''
+              }
+
+              sh '''cd ./install/jenkins-install; \\
+                    sh install.sh --package; \\
+                    echo "JENKINS_BIND_IP=${JENKINS_BIND_IP}" >> config.properties; \\
+                    echo "JENKINS_PORT=${JENKINS_PORT}" >> config.properties'''
+
               def host = [:]
               host.name = 'jenkins'
               host.host = env.REMOTE_HOST_IP
