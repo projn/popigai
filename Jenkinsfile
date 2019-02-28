@@ -56,9 +56,11 @@ pipeline {
               for(int i=0; i<hostList.length; i++) {
                 String hostIp=hostList[i]
 
+                sh 'echo "${hostIp}"'
+
                 def host = [:]
                 host.name = 'config'
-                host.host = '${hostIp}'
+                host.host = "${hostIp}"
                 host.user = env.REMOTE_HOST_USER
                 host.password = env.REMOTE_HOST_PWD
                 host.allowAnyHosts = 'true'
