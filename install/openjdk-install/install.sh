@@ -17,7 +17,11 @@ function usage()
 
 function check_install()
 {
-    uninstall
+    echo "Check install package ..."
+
+    delete_openjdk
+    
+    echo "Check finish."
     return 0
 }
 
@@ -61,6 +65,7 @@ function check_dir()
 
 function install()
 {
+    echo "Begin install..."
     check_install
     if [ $? != 0 ]; then
         echo "Check install failed,check it please."
@@ -69,27 +74,23 @@ function install()
 
     yum install ${SOFTWARE_SOURCE_PACKAGE_NAME} -y
 
-    echo "Install success."
-
     return 0
 }
 
-function uninstall()
+function delete_openjdk()
 {
     result=`rpm -qa | grep java-1.`
 
     for i in ${result[@]}
     do
-        echo "Remove package "$i
+        echo "remove package "$i
         rpm -e --nodeps $i
     done
-
-    echo "Uninstall success."
 }
 
 if [ ! `id -u` = "0" ]; then
     echo "Please run as root user"
-    exit 1
+    exit 5
 fi
 
 if [ $# -eq 0 ]; then
@@ -102,7 +103,7 @@ opt=$1
 if [ "${opt}" == "--install" ]; then
     install
 elif [ "${opt}" == "--uninstall" ]; then
-    uninstall
+    delete_openjdk
 elif [ "${opt}" == "--help" ]; then
     usage
 else
