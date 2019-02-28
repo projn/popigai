@@ -8,7 +8,7 @@ pipeline {
   }
 
   stages {
-    stage('repo') {
+    stage('cloud') {
       parallel {
         stage('install config server') {
           environment {
@@ -56,8 +56,6 @@ pipeline {
               for(int i=0; i<hostList.length; i++) {
                 String hostIp=hostList[i]
 
-                sh '''echo ${hostIp}'''
-
                 def host = [:]
                 host.name = 'config'
                 host.host = "${hostIp}"
@@ -68,6 +66,48 @@ pipeline {
                 sshCommand remote:host, command:"rm -rf ~/alpsconfigserver-install"
                 sshPut remote:host, from:"./install/alpsconfigserver-install", into:"."
                 sshCommand remote:host, command:"cd ~/alpsconfigserver-install;echo 'SOFTWARE_SERVER_IP=${hostIp}' >> config.properties;sh install.sh --install"
+              }
+            }
+          }
+        }
+
+        stage('install consul') {
+          environment {
+            REMOTE_HOST_IP_LIST='192.168.37.134,192.168.37.135'
+            REMOTE_HOST_USER='root'
+            REMOTE_HOST_PWD='123456'
+            CONSUL_HTTP_PORT='8080'
+            CONSUL_CLUSTER_CONFIG='"192.168.37.XXX","192.168.37.XXX","192.168.37.XXX"'
+          }
+
+          when {
+            not {
+              environment name: 'INSTALL_CONIFIG_SERVER_FLAG', value: 'false'
+            }
+          }
+
+          steps {
+            sh '''cd ./install/consul-install; \\
+                  echo "CONSUL_HTTP_PORT=${CONSUL_HTTP_PORT}" >> config.properties; \\
+                  echo "CONSUL_CLUSTER_CONFIG=${CONSUL_CLUSTER_CONFIG}" >> config.properties'''
+
+            script {
+              String hostListStr=env.REMOTE_HOST_IP_LIST
+
+              String[] hostList = hostListStr.split(",")
+              for(int i=0; i<hostList.length; i++) {
+                String hostIp=hostList[i]
+
+                def host = [:]
+                host.name = 'config'
+                host.host = "${hostIp}"
+                host.user = env.REMOTE_HOST_USER
+                host.password = env.REMOTE_HOST_PWD
+                host.allowAnyHosts = 'true'
+
+                sshCommand remote:host, command:"rm -rf ~/consul-install"
+                sshPut remote:host, from:"./install/consul-install", into:"."
+                sshCommand remote:host, command:"cd ~/consul-install;echo 'CONSUL_NODE_NAME=node${i}' >> config.properties;echo 'CONSUL_BIND_IP=${hostIp}' >> config.properties;sh install.sh --install"
               }
             }
           }
