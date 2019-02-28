@@ -19,6 +19,9 @@ pipeline {
       steps {
         sh 'cd ./install/harbor-install'
         sh 'sh install --package'
+        sh 'echo "HARBOR_HOST=${HARBOR_HOST}" >> config.properties'
+        sh 'echo "HARBOR_SSH_FLAG=${HARBOR_SSH_FLAG}" >> config.properties'
+
         script {
           def local = [:]
           local.name = habor
@@ -36,10 +39,10 @@ pipeline {
 
     stage('install nexus') {
       environment {
-        REMOTE_HOST_IP=''
+        REMOTE_HOST_IP='192.168.37.134'
         REMOTE_HOST_USER='root'
-        REMOTE_HOST_PWD=''
-        NEXUS_BIND_IP='192.168.37.XXX'
+        REMOTE_HOST_PWD='123456'
+        NEXUS_BIND_IP='192.168.37.134'
         NEXUS_PORT='8082'
       }
 
@@ -57,6 +60,9 @@ pipeline {
 
         sh 'cd ./install/nexus-install'
         sh 'sh install --package'
+        sh 'echo "NEXUS_BIND_IP=${NEXUS_BIND_IP}" >> config.properties'
+        sh 'echo "NEXUS_PORT=${NEXUS_PORT}" >> config.properties'
+
         script {
           def local = [:]
           local.name = nexus
@@ -72,6 +78,8 @@ pipeline {
           sshCommand remote:local, command:"rm -rf ~/maven-install"
           sshPut remote:local, from:"./install/maven-install", into:"."
           sshCommand remote:local, command:"cd ~/maven-install;sh install.sh --install"
+
+          sshCommand remote:local, command:"source /etc/profile"
 
           sshPut remote:local, from:"./install/nexus-install", into:"."
           sshCommand remote:local, command:"cd ~/nexus-install;sh install.sh --install"
