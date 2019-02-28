@@ -30,16 +30,16 @@ pipeline {
                   echo "HARBOR_SSH_FLAG=${HARBOR_SSH_FLAG}" >> config.properties'''
 
             script {
-              def local = [:]
-              local.name = habor
-              local.host = env.REMOTE_HOST_IP
-              local.user = env.REMOTE_HOST_USER
-              local.password = env.REMOTE_HOST_PWD
-              local.allowAnyHosts = true
+              def host = [:]
+              host.name = 'habor'
+              host.host = env.REMOTE_HOST_IP
+              host.user = env.REMOTE_HOST_USER
+              host.password = env.REMOTE_HOST_PWD
+              host.allowAnyHosts = 'true'
 
-              sshCommand remote:local, command:"rm -rf ~/harbor-install"
-              sshPut remote:local, from:"./install/harbor-install", into:"."
-              sshCommand remote:local, command:"cd ~/harbor-install;sh install.sh --install"
+              sshCommand remote:host, command:"rm -rf ~/harbor-install"
+              sshPut remote:host, from:"./install/harbor-install", into:"."
+              sshCommand remote:host, command:"cd ~/harbor-install;sh install.sh --install"
             }
           }
         }
@@ -68,25 +68,25 @@ pipeline {
                   echo "NEXUS_PORT=${NEXUS_PORT}" >> config.properties'''
 
             script {
-              def local = [:]
-              local.name = nexus
-              local.host = env.REMOTE_HOST_IP
-              local.user = env.REMOTE_HOST_USER
-              local.password = env.REMOTE_HOST_PWD
-              local.allowAnyHosts = true
+              def host = [:]
+              host.name = 'nexus'
+              host.host = env.REMOTE_HOST_IP
+              host.user = env.REMOTE_HOST_USER
+              host.password = env.REMOTE_HOST_PWD
+              host.allowAnyHosts = 'true'
 
-              sshCommand remote:local, command:"rm -rf ~/openjdk-install"
-              sshPut remote:local, from:"./install/openjdk-install", into:"."
-              sshCommand remote:local, command:"cd ~/openjdk-install;sh install.sh --install"
+              sshCommand remote:host, command:"rm -rf ~/openjdk-install"
+              sshPut remote:host, from:"./install/openjdk-install", into:"."
+              sshCommand remote:host, command:"cd ~/openjdk-install;sh install.sh --install"
 
-              sshCommand remote:local, command:"rm -rf ~/maven-install"
-              sshPut remote:local, from:"./install/maven-install", into:"."
-              sshCommand remote:local, command:"cd ~/maven-install;sh install.sh --install"
+              sshCommand remote:host, command:"rm -rf ~/maven-install"
+              sshPut remote:host, from:"./install/maven-install", into:"."
+              sshCommand remote:host, command:"cd ~/maven-install;sh install.sh --install"
 
-              sshCommand remote:local, command:"source /etc/profile"
+              sshCommand remote:host, command:"source /etc/profile"
 
-              sshPut remote:local, from:"./install/nexus-install", into:"."
-              sshCommand remote:local, command:"cd ~/nexus-install;sh install.sh --install"
+              sshPut remote:host, from:"./install/nexus-install", into:"."
+              sshCommand remote:host, command:"cd ~/nexus-install;sh install.sh --install"
             }
           }
         }
