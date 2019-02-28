@@ -1,7 +1,7 @@
 pipeline {
   agent any
   environment {
-    INSTALL_HARBOR_FLAG='true'
+    INSTALL_HARBOR_FLAG='false'
     INSTALL_NEXUS_FLAG='true'
   }
 
@@ -25,7 +25,7 @@ pipeline {
 
           steps {
             sh 'cd ./install/harbor-install'
-            sh 'sh install --package'
+            sh 'sh install.sh --package'
             sh 'echo "HARBOR_HOST=${HARBOR_HOST}" >> config.properties'
             sh 'echo "HARBOR_SSH_FLAG=${HARBOR_SSH_FLAG}" >> config.properties'
 
@@ -53,17 +53,21 @@ pipeline {
             NEXUS_PORT='8082'
           }
 
-          
+          when {
+            not {
+              environment name: 'INSTALL_NEXUS_FLAG', value: 'false'
+            }
+          }
 
           steps {
             sh 'cd ./install/openjdk-install'
-            sh 'sh install --package'
+            sh 'sh install.sh --package'
 
             sh 'cd ./install/maven-install'
-            sh 'sh install --package'
+            sh 'sh install.sh --package'
 
             sh 'cd ./install/nexus-install'
-            sh 'sh install --package'
+            sh 'sh install.sh --package'
             sh 'echo "NEXUS_BIND_IP=${NEXUS_BIND_IP}" >> config.properties'
             sh 'echo "NEXUS_PORT=${NEXUS_PORT}" >> config.properties'
 
