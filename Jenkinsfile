@@ -3,12 +3,11 @@ pipeline {
   stages {
     stage('install harbor') {
       environment {
-        REMOTE_HOST_IP=
-        REMOTE_HOST_USER=root
-        REMOTE_HOST_PWD=
-
-        HARBOR_HOST=192.168.37.XXX
-        HARBOR_SSH_FLAG=false
+        REMOTE_HOST_IP=''
+        REMOTE_HOST_USER='root'
+        REMOTE_HOST_PWD=''
+        HARBOR_HOST='192.168.37.XXX'
+        HARBOR_SSH_FLAG='false'
       }
 
       when {
@@ -37,12 +36,11 @@ pipeline {
 
     stage('install nexus') {
       environment {
-        REMOTE_HOST_IP=
-        REMOTE_HOST_USER=root
-        REMOTE_HOST_PWD=
-
-        NEXUS_BIND_IP=192.168.37.XXX
-        NEXUS_PORT=8082
+        REMOTE_HOST_IP=''
+        REMOTE_HOST_USER='root'
+        REMOTE_HOST_PWD=''
+        NEXUS_BIND_IP='192.168.37.XXX'
+        NEXUS_PORT='8082'
       }
 
       when {
