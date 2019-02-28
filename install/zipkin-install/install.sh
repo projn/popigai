@@ -18,8 +18,6 @@ function usage()
 
 function check_install()
 {
-    echo "Check install package ..."
-
     install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
     check_file ${install_package_path}
     if [ $? != 0 ]; then
@@ -34,7 +32,6 @@ function check_install()
       return 1
     fi
 
-    echo "Check finish."
     return 0
 }
 
@@ -79,7 +76,7 @@ function check_dir()
 function install()
 {
     #curl -sSL https://zipkin.io/quickstart.sh | bash -s
-    echo "Begin install..."
+
     check_install
     if [ $? != 0 ]; then
         echo "Check install failed,check it please."
@@ -135,7 +132,6 @@ function install()
 
 function config()
 {
-    echo "Start to config service ..."
     cp ${CURRENT_WORK_DIR}/${SOFTWARE_SERVICE_NAME} /etc/init.d/${SOFTWARE_SERVICE_NAME}
 
     src=SOFTWARE_USER_NAME
@@ -173,33 +169,31 @@ function config()
     chmod 755 /etc/init.d/${SOFTWARE_SERVICE_NAME}
     chkconfig --add ${SOFTWARE_SERVICE_NAME}
 
-    echo "Config service success, please run 'source /etc/profile' first."
+    echo "Install success, please run 'source /etc/profile' first."
 }
 
 function package() {
+    install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+    check_file ${install_package_path}
+    if [ $? == 0 ]; then
+    	echo "Package file ${install_package_path} exists."
+      return 0
+    fi
     curl -sSL https://zipkin.io/quickstart.sh | bash -s
 }
 
 function uninstall()
 {
-    echo "Uninstall enter ..."
-
     rm -rf ${SOFTWARE_INSTALL_PATH}
     rm -rf ${SOFTWARE_LOG_PATH}
     rm -rf ${SOFTWARE_DATA_PATH}
 
     chkconfig --del ${SOFTWARE_SERVICE_NAME}
     rm /etc/init.d/${SOFTWARE_SERVICE_NAME}
-    echo "remove service success."
 
-    echo "Uninstall leave ..."
+    echo "Uninstall success."
     return 0
 }
-
-if [ ! `id -u` = "0" ]; then
-    echo "Please run as root user"
-    exit 5
-fi
 
 if [ $# -eq 0 ]; then
     usage
