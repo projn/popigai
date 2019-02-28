@@ -24,10 +24,10 @@ pipeline {
           }
 
           steps {
-            sh 'cd ./install/harbor-install'
-            sh 'sh install.sh --package'
-            sh 'echo "HARBOR_HOST=${HARBOR_HOST}" >> config.properties'
-            sh 'echo "HARBOR_SSH_FLAG=${HARBOR_SSH_FLAG}" >> config.properties'
+            sh '''cd ./install/harbor-install; \\
+                  sh install.sh --package; \\
+                  echo "HARBOR_HOST=${HARBOR_HOST}" >> config.properties; \\
+                  echo "HARBOR_SSH_FLAG=${HARBOR_SSH_FLAG}" >> config.properties'''
 
             script {
               def local = [:]
@@ -60,16 +60,14 @@ pipeline {
           }
 
           steps {
-            sh 'cd ./install/openjdk-install'
-            sh 'sh install.sh --package'
-
-            sh 'cd ./install/maven-install'
-            sh 'sh install.sh --package'
-
-            sh 'cd ./install/nexus-install'
-            sh 'sh install.sh --package'
-            sh 'echo "NEXUS_BIND_IP=${NEXUS_BIND_IP}" >> config.properties'
-            sh 'echo "NEXUS_PORT=${NEXUS_PORT}" >> config.properties'
+            sh '''cd ./install/openjdk-install; \\
+                  sh install.sh --package; \\
+                  cd ./install/maven-install; \\
+                  sh install.sh --package; \\
+                  cd ./install/nexus-install; \\
+                  sh install.sh --package; \\
+                  echo "NEXUS_BIND_IP=${NEXUS_BIND_IP}" >> config.properties; \\
+                  echo "NEXUS_PORT=${NEXUS_PORT}" >> config.properties'''
 
             script {
               def local = [:]
