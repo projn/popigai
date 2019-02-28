@@ -30,9 +30,11 @@ pipeline {
 
         stage('install jenkins') {
           steps {
+            sh '''
             if[ -f "./install/maven-install/apache-maven-3.6.0-bin.tar.gz"]; then
-              sh '''echo "hello"'''
-            fi
+              echo "hello"
+            fi'''
+
             script {
               def host = [:]
               host.name = 'jenkins'
