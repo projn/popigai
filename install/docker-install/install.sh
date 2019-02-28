@@ -11,16 +11,11 @@ function usage()
     echo ""
     echo "  --help                  : help."
     echo ""
-    echo "  --package               : package."
     echo "  --install               : install."
-    echo "  --uninstall             : uninstall."
 }
 
 function check_install()
 {
-    echo "Check install package ..."
-
-    echo "Check finish."
     return 0
 }
 
@@ -64,28 +59,6 @@ function check_dir()
 
 function install()
 {
-    echo "Begin install..."
-    check_install
-    if [ $? != 0 ]; then
-        echo "Check install failed,check it please."
-        return 1
-    fi
-
-    check_user_group ${SOFTWARE_USER_GROUP}
-    if [ $? != 0 ]; then
-    	groupadd ${SOFTWARE_USER_GROUP}
-
-    	echo "Add user group ${SOFTWARE_USER_GROUP} success."
-    fi
-
-    check_user ${SOFTWARE_USER_NAME}
-    if [ $? != 0 ]; then
-    	useradd -g ${SOFTWARE_USER_GROUP} -m ${SOFTWARE_USER_NAME}
-        usermod -L ${SOFTWARE_USER_NAME}
-
-        echo "Add user ${SOFTWARE_USER_NAME} success."
-    fi
-
     cd /etc/yum.repos.d/
     wget https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo\
 
@@ -107,6 +80,8 @@ function install()
 
     chmod +x /usr/local/bin/docker-compose
 
+    echo "Install success."
+
     return 0
 }
 
@@ -122,9 +97,7 @@ fi
 
 opt=$1
 
-if [ "${opt}" == "--package" ]; then
-    package
-elif [ "${opt}" == "--install" ]; then
+if [ "${opt}" == "--install" ]; then
     install
     if [ $? != 0 ]; then
         echo "Install failed,check it please."
