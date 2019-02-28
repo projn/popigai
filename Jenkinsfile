@@ -15,18 +15,18 @@ pipeline {
             REMOTE_HOST_IP_LIST='192.168.37.134,192.168.37.135'
             REMOTE_HOST_USER='root'
             REMOTE_HOST_PWD='123456'
-            SOFTWARE_SERVER_PORT=10443
-            SOFTWARE_GIT_REMOTE_REPO_URL=https://github.com/XXX.git
-            SOFTWARE_GIT_REMOTE_REPO_USERNAME=XXX
-            SOFTWARE_GIT_REMOTE_REPO_PASSWORD=XXX
-            SOFTWARE_GIT_LOCAL_REPO_LABEL=master
-            SOFTWARE_GIT_LOCAL_REPO_DIR=/opt/datastore/alpsconfigserver/config
-            SOFTWARE_ACL_KEY_PATH=/opt/software/alpsconfigserver/context/server.jks
-            SOFTWARE_ACL_KEY_PASSWORD=XXX
-            SOFTWARE_ACL_KEY_ALIAS=XXX
-            SOFTWARE_ACL_KEY_SECRET=XXX
-            SOFTWARE_CONSUL_SERVER_ADDRESS=192.168.37.XXX
-            SOFTWARE_CONSUL_PORT=8500
+            SOFTWARE_SERVER_PORT='10443'
+            SOFTWARE_GIT_REMOTE_REPO_URL='https://github.com/XXX.git'
+            SOFTWARE_GIT_REMOTE_REPO_USERNAME='XXX'
+            SOFTWARE_GIT_REMOTE_REPO_PASSWORD='XXX'
+            SOFTWARE_GIT_LOCAL_REPO_LABEL='master'
+            SOFTWARE_GIT_LOCAL_REPO_DIR='/opt/datastore/alpsconfigserver/config'
+            SOFTWARE_ACL_KEY_PATH='/opt/software/alpsconfigserver/context/server.jks'
+            SOFTWARE_ACL_KEY_PASSWORD='XXX'
+            SOFTWARE_ACL_KEY_ALIAS='XXX'
+            SOFTWARE_ACL_KEY_SECRET='XXX'
+            SOFTWARE_CONSUL_SERVER_ADDRESS='192.168.37.XXX'
+            SOFTWARE_CONSUL_PORT='8500'
           }
 
           when {
