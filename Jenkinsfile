@@ -1,11 +1,11 @@
 pipeline {
   agent any
   environment {
-    REMOTE_HOST_IP='192.168.37.XXX'
+    REMOTE_HOST_IP='192.168.37.134'
     REMOTE_HOST_USER='root'
     REMOTE_HOST_PWD='123456'
-    JENKINS_BIND_IP=192.168.37.XXX
-    JENKINS_PORT=8081
+    JENKINS_BIND_IP='192.168.37.134'
+    JENKINS_PORT='8081'
   }
 
   stages {
