@@ -58,7 +58,7 @@ pipeline {
 
                 def host = [:]
                 host.name = 'config'
-                host.host = ${hostIp}
+                host.host = '${hostIp}'
                 host.user = env.REMOTE_HOST_USER
                 host.password = env.REMOTE_HOST_PWD
                 host.allowAnyHosts = 'true'
