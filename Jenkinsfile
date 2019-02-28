@@ -12,17 +12,19 @@ pipeline {
     stage('build') {
       parallel {
         stage('install docker') {
-          script {
-            def host = [:]
-            host.name = 'docker'
-            host.host = env.REMOTE_HOST_IP
-            host.user = env.REMOTE_HOST_USER
-            host.password = env.REMOTE_HOST_PWD
-            host.allowAnyHosts = 'true'
+          steps {
+            script {
+              def host = [:]
+              host.name = 'docker'
+              host.host = env.REMOTE_HOST_IP
+              host.user = env.REMOTE_HOST_USER
+              host.password = env.REMOTE_HOST_PWD
+              host.allowAnyHosts = 'true'
 
-            sshCommand remote:host, command:"rm -rf ~/docker-install"
-            sshPut remote:host, from:"./install/docker-install", into:"."
-            sshCommand remote:host, command:"cd ~/docker-install;sh install.sh --install"
+              sshCommand remote:host, command:"rm -rf ~/docker-install"
+              sshPut remote:host, from:"./install/docker-install", into:"."
+              sshCommand remote:host, command:"cd ~/docker-install;sh install.sh --install"
+            }
           }
         }
 
