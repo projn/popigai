@@ -30,12 +30,12 @@ pipeline {
 
         stage('install jenkins') {
           steps {
+
+            script {
             sh '''cd ./install/maven-install; \\
                   sh install.sh --package'''
             sh '''cd ./install/jenkins-install; \\
                   sh install.sh --package'''
-
-            script {
               def host = [:]
               host.name = 'jenkins'
               host.host = env.REMOTE_HOST_IP
