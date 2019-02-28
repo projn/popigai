@@ -31,8 +31,8 @@ pipeline {
         stage('install jenkins') {
           steps {
             script {
-              file_name=sh(returnStdout: true, script: 'find ./install/maven-install/ "*.tar.gz"')
-              if(file_name == '')
+              File file = new File("./install/maven-install/apache-maven-3.6.0-bin.tar.gz");
+              if(!file.exists())
               {
                 sh(returnStdout: true, script: 'cd ./install/jenkins-install; sh install.sh --package')
               }
