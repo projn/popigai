@@ -1,0 +1,35 @@
+#! /bin/sh
+#chkconfig:  2345 81 96
+#description: start kafka
+
+# path: /etc/init.d/kafkad
+# description: process kafka node service
+# processname: kafkad
+
+SERVICE_USER_NAME=SOFTWARE_USER_NAME
+SERVICE_INSTALL_PATH=SOFTWARE_INSTALL_PATH
+
+case "$1" in
+    start)
+		su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/bin/kafka-server-start.sh -daemon ${SERVICE_INSTALL_PATH}/config/server.properties"
+    ;;
+	stop)
+		su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/bin/kafka-server-stop.sh"
+    ;;
+	restart)
+        $0 stop
+        sleep 5
+        $0 start
+    ;;
+	status)
+		process_id=`ps -ef|grep -i "kafka" |grep -v "grep"|awk '{print $2}'`
+		if [ -z "${process_id}" ];then
+			echo "Service is not running!"
+			exit 1
+		else
+			echo "Service is running!"
+			exit 0
+		fi
+	;;
+esac
+

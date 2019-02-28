@@ -1,0 +1,26 @@
+#! /bin/sh
+#chkconfig:  2345 81 96
+#description: start zookeeper
+
+# path: /etc/init.d/zookeeperd
+# description: process zookeeper node service
+# processname: zookeeperd
+
+SERVICE_USER_NAME=SOFTWARE_USER_NAME
+SERVICE_INSTALL_PATH=SOFTWARE_INSTALL_PATH
+
+case "$1" in
+    start)
+		su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/bin/zkServer.sh start"
+    ;;
+	stop)
+		su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/bin/zkServer.sh stop"
+    ;;
+	restart)
+	    su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/bin/zkServer.sh restart"
+    ;;
+	status)
+		su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/bin/zkServer.sh status"
+	;;
+esac
+
