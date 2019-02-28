@@ -60,9 +60,7 @@ pipeline {
           }
 
           steps {
-            sh '''cd ./install/openjdk-install; \\
-                  sh install.sh --package; \\
-                  cd ./install/maven-install; \\
+            sh '''cd ./install/maven-install; \\
                   sh install.sh --package; \\
                   cd ./install/nexus-install; \\
                   sh install.sh --package; \\
