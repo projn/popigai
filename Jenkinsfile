@@ -53,11 +53,7 @@ pipeline {
             NEXUS_PORT='8082'
           }
 
-          when {
-            not {
-              environment name: 'INSTALL_NEXUS_FLAG', value: 'false'
-            }
-          }
+          
 
           steps {
             sh 'cd ./install/openjdk-install'
