@@ -61,8 +61,8 @@ pipeline {
 
           steps {
             sh '''cd ./install/maven-install; \\
-                  sh install.sh --package; \\
-                  cd ./install/nexus-install; \\
+                  sh install.sh --package'''
+            sh '''cd ./install/nexus-install; \\
                   sh install.sh --package; \\
                   echo "NEXUS_BIND_IP=${NEXUS_BIND_IP}" >> config.properties; \\
                   echo "NEXUS_PORT=${NEXUS_PORT}" >> config.properties'''
