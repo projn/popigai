@@ -7,32 +7,11 @@ function usage()
 {
     echo "Usage: install.sh [--help]"
     echo ""
-    echo "install redis."
+    echo "install kong."
     echo ""
     echo "  --help                  : help."
     echo ""
-    echo "  --package               : package."
     echo "  --install               : install."
-    echo "  --uninstall             : uninstall."
-}
-
-function check_install()
-{
-    install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
-    check_file ${install_package_path}
-    if [ $? != 0 ]; then
-    	echo "Install package ${install_package_path} do not exist."
-      return 1
-    fi
-
-    service_file_path=${CURRENT_WORK_DIR}/${SOFTWARE_SERVICE_NAME}
-    check_file ${service_file_path}
-    if [ $? != 0 ]; then
-    	echo "Service file ${service_file_path} do not exist."
-      return 1
-    fi
-
-    return 0
 }
 
 function check_user_group()
@@ -73,16 +52,24 @@ function check_dir()
     fi
 }
 
+function install_postgresql() {
+    yum install ${KONG_POSTGRES_RPM_URL}
+
+    yum install postgresql11-server
+
+    /usr/pgsql-11/bin/postgresql-11-setup initdb
+    systemctl enable postgresql-11
+    systemctl start postgresql-11
+
+groupadd postgres
+useradd -g postgres postgres
+passwd postgres
+
+/etc/rc.d/init.d/postgresql
+}
+
 function install()
 {
-    #curl -sSL https://zipkin.io/quickstart.sh | bash -s
-
-    check_install
-    if [ $? != 0 ]; then
-        echo "Check install failed,check it please."
-        return 1
-    fi
-
     check_user_group ${SOFTWARE_USER_GROUP}
     if [ $? != 0 ]; then
     	groupadd ${SOFTWARE_USER_GROUP}
@@ -119,13 +106,17 @@ function install()
     chmod 700 ${SOFTWARE_LOG_PATH}
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_LOG_PATH}
 
-    package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
-    mv ./${SOFTWARE_SOURCE_PACKAGE_NAME} ${SOFTWARE_INSTALL_PATH}/
+    cd /etc/yum.repos.d/
 
-    chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
-    chmod -R u=rwx,g=rwx,o=r ${SOFTWARE_INSTALL_PATH}
+    rm -rf kong.repo
+    echo "[kong]" >> /etc/yum.repos.d/kong.repo
+    echo "name=Kong Repo" >> /etc/yum.repos.d/kong.repo
+    echo "baseurl=https://kong.bintray.com/kong-community-edition-rpm/centos/7" >> /etc/yum.repos.d/kong.repo
+    echo "enables=1" >> /etc/yum.repos.d/kong.repo
 
-    echo 'export STORAGE_TYPE=elasticsearch'>>/etc/profile
+    yum repolist
+    yum install -y epel-release
+    yum install -y kong-community-edition.noarch --nogpgcheck
 
     return 0
 }
@@ -133,6 +124,9 @@ function install()
 function config()
 {
     cp ${CURRENT_WORK_DIR}/${SOFTWARE_SERVICE_NAME} /etc/init.d/${SOFTWARE_SERVICE_NAME}
+
+    chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
+    chmod -R u=rwx,g=rwx,o=r ${SOFTWARE_INSTALL_PATH}
 
     src=SOFTWARE_USER_NAME
     dst=${SOFTWARE_USER_NAME}
@@ -142,44 +136,28 @@ function config()
     dst=${SOFTWARE_INSTALL_PATH}
     sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
 
-    src=SOFTWARE_LOG_PATH
-    dst=${SOFTWARE_LOG_PATH}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
+    config_path=${SOFTWARE_INSTALL_PATH}/kong.config
+    cp /etc/kong/kong.conf.default ${config_path}
 
-    src=ZIPKIN_COLLECTOR_SAMPLE_RATE
-    dst=${ZIPKIN_COLLECTOR_SAMPLE_RATE}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
+    sed -i "s:#prefix = /usr/local/kong/:prefix = ${SOFTWARE_LOG_PATH}/:g" ${config_path}
+    sed -i "s/#database = postgres/database = postgres/g" ${config_path}
+    sed -i "s/#pg_host = 127.0.0.1/pg_host = ${KONG_POSTGRES_IP}/g" ${config_path}
+    sed -i "s/#pg_port = 5432/pg_port = ${KONG_POSTGRES_PORT}/g" ${config_path}
+    sed -i "s/#pg_user = kong/pg_user = ${KONG_POSTGRES_USER}/g" ${config_path}
+    sed -i "s/#pg_password =/pg_password = ${KONG_POSTGRES_PASSWORD}/g" ${config_path}
+    sed -i "s/#pg_database = kong/pg_database = ${KONG_POSTGRES_DATABASE_NAME}/g" ${config_path}
 
-    src=ZIPKIN_KAFKA_BOOTSTRAP_SERVERS
-    dst=${ZIPKIN_KAFKA_BOOTSTRAP_SERVERS}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
+    sed -i "s/#db_update_frequency = 5/db_update_frequency = ${KONG_DB_UPDATE_FREQUENCY_SECOND}/g" ${config_path}
 
-    src=ZIPKIN_ES_HOSTS
-    dst=${ZIPKIN_ES_HOSTS}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    src=ZIPKIN_QUERY_PORT
-    dst=${ZIPKIN_QUERY_PORT}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    src=ZIPKIN_HOST
-    dst=${ZIPKIN_HOST}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
+    sed -i "s/#admin_listen = 127.0.0.1:8001, 127.0.0.1:8444 ssl/admin_listen = ${KONG_ADMIN_LISTEN_IP}:8001, ${KONG_ADMIN_LISTEN_IP}:8444 ssl/g" ${config_path}
 
     chmod 755 /etc/init.d/${SOFTWARE_SERVICE_NAME}
     chkconfig --add ${SOFTWARE_SERVICE_NAME}
 
-    echo "Install success, please run 'source /etc/profile' first."
-}
-
-function package() {
-    install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
-    check_file ${install_package_path}
-    if [ $? == 0 ]; then
-    	echo "Package file ${install_package_path} exists."
-      return 0
-    fi
-    curl -sSL https://zipkin.io/quickstart.sh | bash -s
+    echo "Install success,please create postgresql schame by this cmd:
+        CREATE USER kong; CREATE DATABASE kong OWNER kong;
+        and then run cmd:
+        kong migrations bootstrap -c ${config_path}"
 }
 
 function uninstall()
@@ -191,9 +169,17 @@ function uninstall()
     chkconfig --del ${SOFTWARE_SERVICE_NAME}
     rm /etc/init.d/${SOFTWARE_SERVICE_NAME}
 
+    kong stop
+    rpm -e --nodeps kong-community-edition.noarch
+
     echo "Uninstall success."
     return 0
 }
+
+if [ ! `id -u` = "0" ]; then
+    echo "Please run as root user"
+    exit 5
+fi
 
 if [ $# -eq 0 ]; then
     usage
@@ -202,13 +188,7 @@ fi
 
 opt=$1
 
-if [ "${opt}" == "--package" ]; then
-    package
-elif [ "${opt}" == "--install" ]; then
-    if [ ! `id -u` = "0" ]; then
-        echo "Please run as root user"
-        exit 2
-    fi
+if [ "${opt}" == "--install" ]; then
     install
 
     if [ $? != 0 ]; then
@@ -217,10 +197,6 @@ elif [ "${opt}" == "--install" ]; then
     fi
     config
 elif [ "${opt}" == "--uninstall" ]; then
-    if [ ! `id -u` = "0" ]; then
-        echo "Please run as root user"
-        exit 2
-    fi
     uninstall
 elif [ "${opt}" == "--help" ]; then
     usage

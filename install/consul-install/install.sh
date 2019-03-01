@@ -18,8 +18,6 @@ function usage()
 
 function check_install()
 {
-    echo "Check install package ..."
-
     install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
     check_file ${install_package_path}
     if [ $? != 0 ]; then
@@ -47,8 +45,6 @@ function check_install()
     	echo "Service config ${service_config_path} do not exist."
       return 1
     fi
-    
-    echo "Check finish."
     return 0
 }
 
@@ -92,7 +88,6 @@ function check_dir()
 
 function install()
 {
-    echo "Begin install..."
     check_install
     if [ $? != 0 ]; then
         echo "Check install failed,check it please."
@@ -175,36 +170,39 @@ function install()
     chmod 755 /etc/init.d/${SOFTWARE_SERVICE_NAME}
     chkconfig --add ${SOFTWARE_SERVICE_NAME}
 
-    echo "Config service success."
-
+    echo "Install success."
 
     return 0
 }
 
 function package()
 {
+    install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+    check_file ${install_package_path}
+    if [ $? == 0 ]; then
+    	echo "Package file ${install_package_path} exists."
+      return 0
+    fi
     wget https://releases.hashicorp.com/consul/${SOFTWARE_SOURCE_PACKAGE_VERSION}/${SOFTWARE_SOURCE_PACKAGE_NAME}
 }
 
 function uninstall()
 {
-    echo "Uninstall enter ..."
-    
     rm -rf ${SOFTWARE_INSTALL_PATH}
     rm -rf ${SOFTWARE_LOG_PATH}
     rm -rf ${SOFTWARE_DATA_PATH}
 
     chkconfig --del ${SOFTWARE_SERVICE_NAME}
     rm /etc/init.d/${SOFTWARE_SERVICE_NAME}
-    echo "remove service success."
-    
-    echo "Uninstall leave ..."
+
+    echo "Uninstall success."
+
     return 0
 }
 
 if [ ! `id -u` = "0" ]; then
     echo "Please run as root user"
-    exit 5
+    exit 1
 fi
 
 if [ $# -eq 0 ]; then
@@ -217,8 +215,16 @@ opt=$1
 if [ "${opt}" == "--package" ]; then
     package
 elif [ "${opt}" == "--install" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
     install
 elif [ "${opt}" == "--uninstall" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
     uninstall
 elif [ "${opt}" == "--help" ]; then
     usage
