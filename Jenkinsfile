@@ -8,9 +8,7 @@ pipeline {
   }
 
   stages {
-
       parallel {
-
         stage('install zookeeper') {
           environment {
             REMOTE_HOST_IP_LIST='192.168.37.XXX,192.168.37.XXX,192.168.37.XXX'
