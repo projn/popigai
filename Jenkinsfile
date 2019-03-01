@@ -1,7 +1,7 @@
 pipeline {
   agent any
   environment {
-    INSTALL_HARBOR_FLAG='false'
+    INSTALL_HARBOR_FLAG='true'
     INSTALL_NEXUS_FLAG='true'
   }
 
@@ -10,10 +10,10 @@ pipeline {
       parallel {
         stage('install harbor') {
           environment {
-            REMOTE_HOST_IP='192.168.37.XXX'
+            REMOTE_HOST_IP='49.4.115.176'
             REMOTE_HOST_USER='root'
-            REMOTE_HOST_PWD='123456'
-            HARBOR_HOST='192.168.37.XXX'
+            REMOTE_HOST_PWD='KINGking_123'
+            HARBOR_HOST='192.168.1.112'
             HARBOR_SSH_FLAG='false'
           }
 
@@ -46,10 +46,10 @@ pipeline {
 
         stage('install nexus') {
           environment {
-            REMOTE_HOST_IP='192.168.37.XXX'
+            REMOTE_HOST_IP='49.4.115.176'
             REMOTE_HOST_USER='root'
-            REMOTE_HOST_PWD='123456'
-            NEXUS_BIND_IP='192.168.37.XXX'
+            REMOTE_HOST_PWD='KINGking_123'
+            NEXUS_BIND_IP='192.168.1.112'
             NEXUS_PORT='8082'
           }
 
