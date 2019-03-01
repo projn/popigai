@@ -141,10 +141,6 @@ function config()
 
     config_path=${SOFTWARE_INSTALL_PATH}/config/elasticsearch.yml
 
-    src='broker.id=0'
-    dst='broker.id='${KAFKA_BROKER_ID}
-    sed -i "s#$src#$dst#g" ${config_path}
-
     src='\#cluster.name: my-application'
     dst='cluster.name: '${ELASTICSEARCH_CLUSTER_NAME}
     sed -i "s#$src#$dst#g" ${config_path}
@@ -219,7 +215,6 @@ function uninstall()
 
     chkconfig --del ${SOFTWARE_SERVICE_NAME}
     rm /etc/init.d/${SOFTWARE_SERVICE_NAME}
-    echo "remove service success."
 
     echo "Uninstall success."
     return 0
