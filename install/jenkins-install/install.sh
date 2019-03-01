@@ -122,6 +122,8 @@ function install()
     chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
     chmod 755 ${SOFTWARE_INSTALL_PATH}/${SOFTWARE_SOURCE_PACKAGE_NAME}
 
+    yum install -y git
+
     return 0
 }
 
