@@ -52,6 +52,22 @@ function check_dir()
     fi
 }
 
+function install_postgresql() {
+    yum install ${KONG_POSTGRES_RPM_URL}
+
+    yum install postgresql11-server
+
+    /usr/pgsql-11/bin/postgresql-11-setup initdb
+    systemctl enable postgresql-11
+    systemctl start postgresql-11
+
+groupadd postgres
+useradd -g postgres postgres
+passwd postgres
+
+/etc/rc.d/init.d/postgresql
+}
+
 function install()
 {
     check_user_group ${SOFTWARE_USER_GROUP}

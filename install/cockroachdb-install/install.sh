@@ -183,10 +183,10 @@ function config()
 
 function create_root_certs() {
     ${SOFTWARE_INSTALL_PATH}/cockroach cert create-ca --certs-dir=${SOFTWARE_INSTALL_PATH}/certs --ca-key=${SOFTWARE_INSTALL_PATH}/safe-dir/ca.key
-    for host in ${COCKROACHDB_NODE_HOST_LIST[@]}; do
-        scp ${SOFTWARE_INSTALL_PATH}/certs/ca.crt root@$host:${SOFTWARE_INSTALL_PATH}/certs/ca.crt
-        scp ${SOFTWARE_INSTALL_PATH}/safe-dir/ca.key root@$host:${SOFTWARE_INSTALL_PATH}/safe-dir/ca.key
-    done
+    #for host in ${COCKROACHDB_NODE_HOST_LIST[@]}; do
+    #    scp ${SOFTWARE_INSTALL_PATH}/certs/ca.crt root@$host:${SOFTWARE_INSTALL_PATH}/certs/ca.crt
+    #    scp ${SOFTWARE_INSTALL_PATH}/safe-dir/ca.key root@$host:${SOFTWARE_INSTALL_PATH}/safe-dir/ca.key
+    #done
     chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
 }
 
