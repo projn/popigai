@@ -24,13 +24,6 @@ function check_install()
     	echo "Install package ${install_package_path} do not exist."
       return 1
     fi
-
-    install_config_path=${CURRENT_WORK_DIR}/config.properties
-    check_file ${install_config_path}
-    if [ $? != 0 ]; then
-    	echo "Install config ${install_config_path} do not exist."
-      return 1
-    fi
     return 0
 }
 
@@ -80,35 +73,9 @@ function install()
         return 1
     fi
 
-    check_user_group ${SOFTWARE_USER_GROUP}
-    if [ $? != 0 ]; then
-    	groupadd ${SOFTWARE_USER_GROUP}
-
-    	echo "Add user group ${SOFTWARE_USER_GROUP} success."
-    fi
-    
-    check_user ${SOFTWARE_USER_NAME}
-    if [ $? != 0 ]; then
-    	useradd -g ${SOFTWARE_USER_GROUP} -m ${SOFTWARE_USER_NAME}
-        usermod -L ${SOFTWARE_USER_NAME}
-      
-        echo "Add user ${SOFTWARE_USER_NAME} success."
-    fi
-
-    mkdir -p ${SOFTWARE_INSTALL_PATH}
-
-    tar -zxvf ${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME} \
-        -C ${SOFTWARE_INSTALL_PATH}/
-
-    chmod u=rwx,g=r,o=r ${SOFTWARE_INSTALL_PATH}
-    chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
-
-    echo "export MAVEN_HOME=${SOFTWARE_INSTALL_PATH}/${SOFTWARE_INSTALL_PACKAGE_NAME}">>/etc/profile
-    echo 'export PATH=$PATH:$MAVEN_HOME/bin'>>/etc/profile
-
-    source /etc/profile
-
-    echo "Install success,use cmd 'source /etc/profile' to make it in use."
+    package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+    tar -zxvf ${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+    mv ${SOFTWARE_INSTALL_PACKAGE_NAME}/helm ${SOFTWARE_INSTALL_PATH}/helm
 
     return 0
 }
@@ -125,16 +92,18 @@ function package() {
         if [ $? == 0 ]; then
             cp -rf ${install_package_path} ./
         else
-            wget http://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/${SOFTWARE_SOURCE_PACKAGE_VERSION}/binaries/${SOFTWARE_SOURCE_PACKAGE_NAME}
+            wget https://storage.googleapis.com/kubernetes-helm/${SOFTWARE_SOURCE_PACKAGE_NAME}
         fi
     fi
+
 }
 
 function uninstall()
 {
-    rm -rf ${SOFTWARE_INSTALL_PATH}
-    
+    rm -rf ${SOFTWARE_INSTALL_PATH}/helm
+
     echo "Uninstall success."
+
     return 0
 }
 
@@ -152,14 +121,12 @@ elif [ "${opt}" == "--install" ]; then
         echo "Please run as root user"
         exit 2
     fi
-
     install
 elif [ "${opt}" == "--uninstall" ]; then
     if [ ! `id -u` = "0" ]; then
         echo "Please run as root user"
         exit 2
     fi
-
     uninstall
 elif [ "${opt}" == "--help" ]; then
     usage

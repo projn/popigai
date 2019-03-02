@@ -122,6 +122,8 @@ function install()
     chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
     chmod 755 ${SOFTWARE_INSTALL_PATH}/${SOFTWARE_SOURCE_PACKAGE_NAME}
 
+    yum install -y git
+
     return 0
 }
 
@@ -168,9 +170,17 @@ function package() {
     check_file ${install_package_path}
     if [ $? == 0 ]; then
     	echo "Package file ${install_package_path} exists."
-      return 0
+        return 0
+    else
+        install_package_path=${PACKAGE_REPO_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        check_file ${install_package_path}
+        if [ $? == 0 ]; then
+            cp -rf ${install_package_path} ./
+        else
+            wget https://mirrors.tuna.tsinghua.edu.cn/jenkins/war-stable/${SOFTWARE_SOURCE_PACKAGE_VERSION}/jenkins.war
+        fi
     fi
-    wget https://mirrors.tuna.tsinghua.edu.cn/jenkins/war-stable/${SOFTWARE_SOURCE_PACKAGE_VERSION}/jenkins.war
+
 }
 
 function uninstall()

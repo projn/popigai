@@ -170,9 +170,16 @@ function package() {
     check_file ${install_package_path}
     if [ $? == 0 ]; then
     	echo "Package file ${install_package_path} exists."
-      return 0
+        return 0
+    else
+        install_package_path=${PACKAGE_REPO_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        check_file ${install_package_path}
+        if [ $? == 0 ]; then
+            cp -rf ${install_package_path} ./
+        else
+            wget https://sonatype-download.global.ssl.fastly.net/repository/repositoryManager/3/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        fi
     fi
-    wget https://sonatype-download.global.ssl.fastly.net/repository/repositoryManager/3/${SOFTWARE_SOURCE_PACKAGE_NAME}
 }
 
 function uninstall()
