@@ -1,8 +1,10 @@
 pipeline {
   agent any
   environment {
+    PACKAGE_REPO_DIR=''
     INSTALL_HARBOR_FLAG='true'
     INSTALL_NEXUS_FLAG='true'
+
   }
 
   stages {
@@ -10,10 +12,10 @@ pipeline {
       parallel {
         stage('install harbor') {
           environment {
-            REMOTE_HOST_IP='49.4.115.176'
+            REMOTE_HOST_IP='192.168.37.XXX'
             REMOTE_HOST_USER='root'
-            REMOTE_HOST_PWD='KINGking_123'
-            HARBOR_HOST='192.168.1.112'
+            REMOTE_HOST_PWD='123456'
+            HARBOR_HOST='192.168.37.XXX'
             HARBOR_SSH_FLAG='false'
           }
 
@@ -25,6 +27,7 @@ pipeline {
 
           steps {
             sh '''cd ./install/harbor-install; \\
+                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
                   sh install.sh --package; \\
                   echo "HARBOR_HOST=${HARBOR_HOST}" >> config.properties; \\
                   echo "HARBOR_SSH_FLAG=${HARBOR_SSH_FLAG}" >> config.properties'''
@@ -46,10 +49,10 @@ pipeline {
 
         stage('install nexus') {
           environment {
-            REMOTE_HOST_IP='49.4.115.176'
+            REMOTE_HOST_IP='192.168.37.XXX'
             REMOTE_HOST_USER='root'
-            REMOTE_HOST_PWD='KINGking_123'
-            NEXUS_BIND_IP='192.168.1.112'
+            REMOTE_HOST_PWD='123456'
+            HARBOR_HOST='192.168.37.XXX'
             NEXUS_PORT='8082'
           }
 
@@ -61,8 +64,10 @@ pipeline {
 
           steps {
             sh '''cd ./install/maven-install; \\
+                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
                   sh install.sh --package'''
             sh '''cd ./install/nexus-install; \\
+                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
                   sh install.sh --package; \\
                   echo "NEXUS_BIND_IP=${NEXUS_BIND_IP}" >> config.properties; \\
                   echo "NEXUS_PORT=${NEXUS_PORT}" >> config.properties'''
