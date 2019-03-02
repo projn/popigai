@@ -1,6 +1,7 @@
 pipeline {
   agent any
   environment {
+    PACKAGE_REPO_DIR=''
     INSTALL_CONIFIG_SERVER_FLAG='true'
     INSTALL_CONSUL_FLAG='true'
     INSTALL_ZIPKIN_FLAG='true'
