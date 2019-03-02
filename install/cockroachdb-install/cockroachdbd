@@ -1,0 +1,91 @@
+#! /bin/sh
+#chkconfig:  2345 81 96
+#description: start cockroachdb
+
+# path: /etc/init.d/cockroachdbd
+# description: process cockroachdb node service
+# processname: cockroachdbd
+
+SERVICE_USER_NAME=SOFTWARE_USER_NAME
+SERVICE_INSTALL_PATH=SOFTWARE_INSTALL_PATH
+SERVICE_PROCESS_NAME='cockroach start'
+
+case "$1" in
+    start)
+		process_id=`ps -ef|grep -i "${SERVICE_PROCESS_NAME}" |grep -v "grep"|awk '{print $2}'`
+		if [ -z "${process_id}" ];then
+        	echo "Starting service..."
+
+            if [ "${2}" == "master" ];then
+                if [ "${3}" == "insecure" ]; then
+                    su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/cockroach start \
+                        --insecure --background \
+                        --listen-addr=COCKROACHDB_HOST:COCKROACHDB_PORT --http-addr=COCKROACHDB_HOST:COCKROACHDB_UI_PORT \
+                        --log-dir=SOFTWARE_LOG_PATH --temp-dir=SOFTWARE_DATA_PATH/tmp \
+                        --store=SOFTWARE_DATA_PATH"
+                else
+                    su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/cockroach start \
+                        --certs-dir=${SERVICE_INSTALL_PATH}/certs --background \
+                        --listen-addr=COCKROACHDB_HOST:COCKROACHDB_PORT --http-addr=COCKROACHDB_HOST:COCKROACHDB_UI_PORT \
+                        --log-dir=SOFTWARE_LOG_PATH --temp-dir=SOFTWARE_DATA_PATH/tmp \
+                        --store=SOFTWARE_DATA_PATH"
+                 fi
+            else
+                if [ "${3}" == "insecure" ]; then
+                    su - ${SERVICE_USER_NAME} -c "${SERVICE_INSTALL_PATH}/cockroach start \
+                        --insecure --background \
+                        --listen-addr=COCKROACHDB_HOST:COCKROACHDB_PORT --http-addr=COCKROACHDB_HOST:COCKROACHDB_UI_PORT \
+                        --log-dir=SOFTWARE_LOG_PATH --temp-dir=SOFTWARE_DATA_PATH/tmp \
+                        --store=SOFTWARE_DATA_PATH \
+                        --join=COCKROACHDB_MASTER_HOSTS"
+                else
+                    su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/cockroach start \
+                        --certs-dir=${SERVICE_INSTALL_PATH}/certs --background \
+                        --listen-addr=COCKROACHDB_HOST:COCKROACHDB_PORT --http-addr=COCKROACHDB_HOST:COCKROACHDB_UI_PORT \
+                        --log-dir=SOFTWARE_LOG_PATH --temp-dir=SOFTWARE_DATA_PATH/tmp \
+                        --store=SOFTWARE_DATA_PATH \
+                        --join=COCKROACHDB_MASTER_HOSTS"
+                 fi
+            fi
+
+            sleep 2
+            process_id=`ps -ef|grep -i "${SERVICE_PROCESS_NAME}" |grep -v "grep"|awk '{print $2}'`
+            if [ -z "${process_id}" ];then
+                echo "Start service error!"
+                exit 1
+            else
+                echo "Start service success!"
+            fi
+		else
+			echo "Service is running!"
+        fi
+    ;;
+	stop)
+		echo "Shutting down service..."
+		process_id=`ps -ef|grep -i "${SERVICE_PROCESS_NAME}" |grep -v "grep"|awk '{print $2}'`
+		if [ -z "${process_id}" ];then
+	        echo "There is no service running!"
+     	else
+            kill -9 ${process_id}
+            echo "Service " ${process_id} " is killed!"
+     	fi
+        sleep 5
+        echo "Service stop success!"
+    ;;
+	restart)
+        $0 stop
+        sleep 5
+        $0 start
+    ;;
+	status)
+		process_id=`ps -ef|grep -i "${SERVICE_PROCESS_NAME}" |grep -v "grep"|awk '{print $2}'`
+		if [ -z "${process_id}" ];then
+			echo "Service is not running!"
+			exit 1
+		else
+			echo "Service is running!"
+			exit 0
+		fi
+	;;
+esac
+
