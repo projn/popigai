@@ -118,9 +118,16 @@ function package() {
     check_file ${install_package_path}
     if [ $? == 0 ]; then
     	echo "Package file ${install_package_path} exists."
-      return 0
+        return 0
+    else
+        install_package_path=${PACKAGE_REPO_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        check_file ${install_package_path}
+        if [ $? == 0 ]; then
+            cp -rf ${install_package_path} ./
+        else
+            wget http://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/${SOFTWARE_SOURCE_PACKAGE_VERSION}/binaries/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        fi
     fi
-    wget http://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/${SOFTWARE_SOURCE_PACKAGE_VERSION}/binaries/${SOFTWARE_SOURCE_PACKAGE_NAME}
 }
 
 function uninstall()
