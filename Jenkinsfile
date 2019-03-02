@@ -37,9 +37,6 @@ pipeline {
           }
 
           steps {
-            sh '''cd ./install/openjdk-install; \\
-                  sh install.sh --package'''
-
             sh '''cd ./install/alpsconfigserver-install; \\
                   echo "SOFTWARE_SERVER_PORT=${SOFTWARE_SERVER_PORT}" >> config.properties; \\
                   echo "SOFTWARE_GIT_REMOTE_REPO_URL=${SOFTWARE_GIT_REMOTE_REPO_URL}" >> config.properties; \\
@@ -98,6 +95,7 @@ pipeline {
 
           steps {
             sh '''cd ./install/consul-install; \\
+                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
                   sh install.sh --package; \\
                   echo "CONSUL_HTTP_PORT=${CONSUL_HTTP_PORT}" >> config.properties; \\
                   echo "CONSUL_CLUSTER_CONFIG=${CONSUL_CLUSTER_CONFIG}" >> config.properties'''
@@ -141,6 +139,7 @@ pipeline {
 
           steps {
             sh '''cd ./install/zookeeper-install; \\
+                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
                   sh install.sh --package; \\
                   echo "ZOOKEEPER_CLUSTER_HOST_LIST=${ZOOKEEPER_CLUSTER_HOST_LIST}" >> config.properties; \\
                   echo "ZOOKEEPER_CLIENT_PORT=${ZOOKEEPER_CLIENT_PORT}" >> config.properties'''
@@ -184,6 +183,7 @@ pipeline {
 
           steps {
             sh '''cd ./install/zookeeper-install; \\
+                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
                   sh install.sh --package; \\
                   echo "KAFKA_LISTENER_PORT=${KAFKA_LISTENER_PORT}" >> config.properties; \\
                   echo "ZOOKEEPER_CLUSTER_INFO=${ZOOKEEPER_CLUSTER_INFO}" >> config.properties'''
@@ -227,6 +227,7 @@ pipeline {
 
           steps {
             sh '''cd ./install/elasticsearch-install; \\
+                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
                   sh install.sh --package; \\
                   echo "ELASTICSEARCH_PORT=${ELASTICSEARCH_PORT}" >> config.properties; \\
                   echo "ELASTICSEARCH_CLUSTER_HOST_LIST=${ELASTICSEARCH_CLUSTER_HOST_LIST}" >> config.properties'''
@@ -271,6 +272,7 @@ pipeline {
 
           steps {
             sh '''cd ./install/zipkin-install; \\
+                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
                   sh install.sh --package; \\
                   echo "ZIPKIN_KAFKA_BOOTSTRAP_SERVERS=${ZIPKIN_KAFKA_BOOTSTRAP_SERVERS}" >> config.properties; \\
                   echo "ZIPKIN_QUERY_PORT=${ZIPKIN_QUERY_PORT}" >> config.properties; \\
@@ -321,6 +323,7 @@ pipeline {
 
           steps {
             sh '''cd ./install/cockroachdb-install; \\
+                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
                   sh install.sh --package; \\
                   echo "SOFTWARE_INSTALL_PATH=${SOFTWARE_INSTALL_PATH}" >> config.properties; \\
                   echo "SOFTWARE_USER_GROUP=${SOFTWARE_USER_GROUP}" >> config.properties; \\
@@ -398,6 +401,7 @@ pipeline {
 
           steps {
             sh '''cd ./install/kong-install; \\
+                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
                   sh install.sh --package; \\
                   echo "KONG_POSTGRES_IP=${KONG_POSTGRES_IP}" >> config.properties; \\
                   echo "KONG_POSTGRES_PORT=${KONG_POSTGRES_PORT}" >> config.properties; \\
