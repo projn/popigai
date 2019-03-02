@@ -29,6 +29,27 @@ pipeline {
           }
         }
 
+        stage('install help') {
+          steps {
+            sh '''cd ./install/helm-install; \\
+                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
+                  sh install.sh --package'''
+
+            script {
+              def host = [:]
+              host.name = 'helm'
+              host.host = env.REMOTE_HOST_IP
+              host.user = env.REMOTE_HOST_USER
+              host.password = env.REMOTE_HOST_PWD
+              host.allowAnyHosts = 'true'
+
+              sshCommand remote:host, command:"rm -rf ~/helm-install"
+              sshPut remote:host, from:"./install/helm-install", into:"."
+              sshCommand remote:host, command:"cd ~/helm-install;sh install.sh --install"
+            }
+          }
+        }
+
         stage('install jenkins') {
           steps {
             sh '''cd ./install/maven-install; \\

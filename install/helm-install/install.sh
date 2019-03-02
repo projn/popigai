@@ -24,13 +24,6 @@ function check_install()
     	echo "Install package ${install_package_path} do not exist."
       return 1
     fi
-
-    service_file_path=${CURRENT_WORK_DIR}/${SOFTWARE_SERVICE_NAME}
-    check_file ${service_file_path}
-    if [ $? != 0 ]; then
-    	echo "Service file ${service_file_path} do not exist."
-      return 1
-    fi
     return 0
 }
 
@@ -80,87 +73,11 @@ function install()
         return 1
     fi
 
-    check_user_group ${SOFTWARE_USER_GROUP}
-    if [ $? != 0 ]; then
-    	groupadd ${SOFTWARE_USER_GROUP}
-
-    	echo "Add user group ${SOFTWARE_USER_GROUP} success."
-    fi
-    
-    check_user ${SOFTWARE_USER_NAME}
-    if [ $? != 0 ]; then
-    	useradd -g ${SOFTWARE_USER_GROUP} -m ${SOFTWARE_USER_NAME}
-        usermod -L ${SOFTWARE_USER_NAME}
-      
-        echo "Add user ${SOFTWARE_USER_NAME} success."
-    fi
-
-    father_dir=`dirname ${SOFTWARE_INSTALL_PATH}`
-    mkdir -p ${father_dir}
-    chmod 755 ${father_dir}
-    mkdir -p ${SOFTWARE_INSTALL_PATH}
-    chmod 700 ${SOFTWARE_INSTALL_PATH}
-    chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
-
-    father_dir=`dirname ${SOFTWARE_DATA_PATH}`
-    mkdir -p ${father_dir}
-    chmod 755 ${father_dir}
-    mkdir -p ${SOFTWARE_DATA_PATH}
-    chmod 700 ${SOFTWARE_DATA_PATH}
-    chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_DATA_PATH}
-
-    father_dir=`dirname ${SOFTWARE_LOG_PATH}`
-    mkdir -p ${father_dir}
-    chmod 755 ${father_dir}
-    mkdir -p ${SOFTWARE_LOG_PATH}
-    chmod 700 ${SOFTWARE_LOG_PATH}
-    chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_LOG_PATH}
-
     package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
-    cp -rf ${package_path} ${SOFTWARE_INSTALL_PATH}/
-
-    chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
-    chmod 755 ${SOFTWARE_INSTALL_PATH}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+    tar -zxvf ${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+    mv ${SOFTWARE_INSTALL_PACKAGE_NAME}/helm ${SOFTWARE_INSTALL_PATH}/helm
 
     return 0
-}
-
-function config()
-{
-    cp ${CURRENT_WORK_DIR}/${SOFTWARE_SERVICE_NAME} /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    src=SOFTWARE_USER_NAME
-    dst=${SOFTWARE_USER_NAME}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    src=SOFTWARE_PROCESS_NAME
-    dst=${JENKINS_PROCESS_NAME}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    src=SOFTWARE_BIND_IP
-    dst=${JENKINS_BIND_IP}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    src=SOFTWARE_PORT
-    dst=${JENKINS_PORT}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    src=SOFTWARE_INSTALL_PATH
-    dst=${SOFTWARE_INSTALL_PATH}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    src=SOFTWARE_DATA_PATH
-    dst=${SOFTWARE_DATA_PATH}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    src=SOFTWARE_LOG_PATH
-    dst=${SOFTWARE_LOG_PATH}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    chmod 755 /etc/init.d/${SOFTWARE_SERVICE_NAME}
-    chkconfig --add ${SOFTWARE_SERVICE_NAME}
-
-    echo "Install success."
 }
 
 function package() {
@@ -168,19 +85,22 @@ function package() {
     check_file ${install_package_path}
     if [ $? == 0 ]; then
     	echo "Package file ${install_package_path} exists."
-      return 0
+        return 0
+    else
+        install_package_path=${PACKAGE_REPO_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        check_file ${install_package_path}
+        if [ $? == 0 ]; then
+            cp -rf ${install_package_path} ./
+        else
+            wget https://storage.googleapis.com/kubernetes-helm/${SOFTWARE_SOURCE_PACKAGE_VERSION}
+        fi
     fi
-    wget https://mirrors.tuna.tsinghua.edu.cn/jenkins/war-stable/${SOFTWARE_SOURCE_PACKAGE_VERSION}/jenkins.war
+
 }
 
 function uninstall()
 {
-    rm -rf ${SOFTWARE_INSTALL_PATH}
-    rm -rf ${SOFTWARE_LOG_PATH}
-    rm -rf ${SOFTWARE_DATA_PATH}
-
-    chkconfig --del ${SOFTWARE_SERVICE_NAME}
-    rm /etc/init.d/${SOFTWARE_SERVICE_NAME}
+    rm -rf ${SOFTWARE_INSTALL_PATH}/helm
 
     echo "Uninstall success."
 
@@ -202,12 +122,6 @@ elif [ "${opt}" == "--install" ]; then
         exit 2
     fi
     install
-
-    if [ $? != 0 ]; then
-        echo "Install failed,check it please."
-        return 1
-    fi
-    config
 elif [ "${opt}" == "--uninstall" ]; then
     if [ ! `id -u` = "0" ]; then
         echo "Please run as root user"
