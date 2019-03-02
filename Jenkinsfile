@@ -29,7 +29,7 @@ pipeline {
           }
         }
 
-        stage('install help') {
+        stage('install helm') {
           steps {
             sh '''cd ./install/helm-install; \\
                   echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\

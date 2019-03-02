@@ -92,7 +92,7 @@ function package() {
         if [ $? == 0 ]; then
             cp -rf ${install_package_path} ./
         else
-            wget https://storage.googleapis.com/kubernetes-helm/${SOFTWARE_SOURCE_PACKAGE_VERSION}
+            wget https://storage.googleapis.com/kubernetes-helm/${SOFTWARE_SOURCE_PACKAGE_NAME}
         fi
     fi
 
