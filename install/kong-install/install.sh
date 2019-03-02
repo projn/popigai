@@ -12,6 +12,7 @@ function usage()
     echo "  --help                  : help."
     echo ""
     echo "  --install               : install."
+    echo "  --uninstall             : uninstall."
 }
 
 function check_user_group()
@@ -50,21 +51,6 @@ function check_dir()
     else
         return 2
     fi
-}
-
-function install_postgresql() {
-    yum install ${KONG_POSTGRES_RPM_URL}
-
-    yum -y install postgresql11 postgresql11-server postgresql11-libs
-
-    mkdir -p /opt/datastore/postgresql/pgsql /mnt/db1/pgdata/pgtbs /mnt/db1/archivelog /backups
-    chmod -R 775 /mnt/db1
-    chown -R postgres:postgres /mnt/db1
-
-    /usr/pgsql-11/bin/postgresql-11-setup initdb
-    systemctl enable postgresql-11
-    systemctl start postgresql-11
-/etc/rc.d/init.d/postgresql
 }
 
 function install()
