@@ -30,6 +30,8 @@ function usage()
 
 function check_install()
 {
+    echo "Check install package ..."
+
     install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_INSTALL_PACKAGE_NAME}
     check_dir ${install_package_path}
     if [ $? != 0 ]; then
@@ -43,6 +45,8 @@ function check_install()
     	echo "Service file ${service_file_path} do not exist."
       return 1
     fi
+
+    echo "Check finish."
     return 0
 }
 
@@ -86,6 +90,7 @@ function check_dir()
 
 function install()
 {
+    echo "Begin install..."
     check_install
     if [ $? != 0 ]; then
         echo "Check install failed,check it please."
@@ -127,56 +132,58 @@ function install()
     chmod u=rwx,g=rwx,o=r  ${SOFTWARE_INSTALL_PATH}/*.jar
     chmod -R u=rwx,g=rwx,o=r ${SOFTWARE_INSTALL_PATH}/context/
 
-    src=SOFTWARE_SERVER_IP
-    dst=${SOFTWARE_SERVER_IP}
+    echo  "Start to config service ..."
+
+    src=CONFIG_SERVER_IP
+    dst=${CONFIG_SERVER_IP}
     sed -i "s#$src#$dst#g" ${SOFTWARE_INSTALL_PATH}/context/bootstrap.properties
 
-    src=SOFTWARE_SERVER_PORT
-    dst=${SOFTWARE_SERVER_PORT}
+    src=CONFIG_SERVER_PORT
+    dst=${CONFIG_SERVER_PORT}
     sed -i "s#$src#$dst#g" ${SOFTWARE_INSTALL_PATH}/context/bootstrap.properties
 
-    src=SOFTWARE_GIT_REMOTE_REPO_URL
-    dst=${SOFTWARE_GIT_REMOTE_REPO_URL}
+    src=CONFIG_GIT_REMOTE_REPO_URL
+    dst=${CONFIG_GIT_REMOTE_REPO_URL}
     sed -i "s#$src#$dst#g" ${SOFTWARE_INSTALL_PATH}/context/bootstrap.properties
 
-    src=SOFTWARE_GIT_REMOTE_REPO_USERNAME
-    dst=${SOFTWARE_GIT_REMOTE_REPO_USERNAME}
+    src=CONFIG_GIT_REMOTE_REPO_USERNAME
+    dst=${CONFIG_GIT_REMOTE_REPO_USERNAME}
     sed -i "s#$src#$dst#g" ${SOFTWARE_INSTALL_PATH}/context/bootstrap.properties
 
-    src=SOFTWARE_GIT_REMOTE_REPO_PASSWORD
-    dst=${SOFTWARE_GIT_REMOTE_REPO_PASSWORD}
+    src=CONFIG_GIT_REMOTE_REPO_PASSWORD
+    dst=${CONFIG_GIT_REMOTE_REPO_PASSWORD}
     sed -i "s#$src#$dst#g" ${SOFTWARE_INSTALL_PATH}/context/bootstrap.properties
 
-    src=SOFTWARE_GIT_LOCAL_REPO_LABEL
-    dst=${SOFTWARE_GIT_LOCAL_REPO_LABEL}
+    src=CONFIG_GIT_LOCAL_REPO_LABEL
+    dst=${CONFIG_GIT_LOCAL_REPO_LABEL}
     sed -i "s#$src#$dst#g" ${SOFTWARE_INSTALL_PATH}/context/bootstrap.properties
 
-    src=SOFTWARE_GIT_LOCAL_REPO_DIR
-    dst=${SOFTWARE_GIT_LOCAL_REPO_DIR}
+    src=CONFIG_GIT_LOCAL_REPO_DIR
+    dst=${CONFIG_GIT_LOCAL_REPO_DIR}
     sed -i "s#$src#$dst#g" ${SOFTWARE_INSTALL_PATH}/context/bootstrap.properties
 
-    src=SOFTWARE_ACL_KEY_PATH
-    dst=${SOFTWARE_ACL_KEY_PATH}
+    src=CONFIG_ACL_KEY_PATH
+    dst=${CONFIG_ACL_KEY_PATH}
     sed -i "s#$src#$dst#g" ${SOFTWARE_INSTALL_PATH}/context/bootstrap.properties
 
-    src=SOFTWARE_ACL_KEY_PASSWORD
-    dst=${SOFTWARE_ACL_KEY_PASSWORD}
+    src=CONFIG_ACL_KEY_PASSWORD
+    dst=${CONFIG_ACL_KEY_PASSWORD}
     sed -i "s#$src#$dst#g" ${SOFTWARE_INSTALL_PATH}/context/bootstrap.properties
 
-    src=SOFTWARE_ACL_KEY_ALIAS
-    dst=${SOFTWARE_ACL_KEY_ALIAS}
+    src=CONFIG_ACL_KEY_ALIAS
+    dst=${CONFIG_ACL_KEY_ALIAS}
     sed -i "s#$src#$dst#g" ${SOFTWARE_INSTALL_PATH}/context/bootstrap.properties
 
-    src=SOFTWARE_ACL_KEY_SECRET
-    dst=${SOFTWARE_ACL_KEY_SECRET}
+    src=CONFIG_ACL_KEY_SECRET
+    dst=${CONFIG_ACL_KEY_SECRET}
     sed -i "s#$src#$dst#g" ${SOFTWARE_INSTALL_PATH}/context/bootstrap.properties
 
-    src=SOFTWARE_CONSUL_SERVER_ADDRESS
-    dst=${SOFTWARE_CONSUL_SERVER_ADDRESS}
+    src=CONFIG_CONSUL_SERVER_ADDRESS
+    dst=${CONFIG_CONSUL_SERVER_ADDRESS}
     sed -i "s#$src#$dst#g" ${SOFTWARE_INSTALL_PATH}/context/bootstrap.properties
 
-    src=SOFTWARE_CONSUL_PORT
-    dst=${SOFTWARE_CONSUL_PORT}
+    src=CONFIG_CONSUL_PORT
+    dst=${CONFIG_CONSUL_PORT}
     sed -i "s#$src#$dst#g" ${SOFTWARE_INSTALL_PATH}/context/bootstrap.properties
 
     cp ${CURRENT_WORK_DIR}/${SOFTWARE_SERVICE_NAME} /etc/init.d/${SOFTWARE_SERVICE_NAME}
@@ -196,7 +203,9 @@ function install()
 	chmod 755 /etc/init.d/${SOFTWARE_SERVICE_NAME}
 	chkconfig --add ${SOFTWARE_SERVICE_NAME}
 
-    echo "Install success."
+    echo "config service success."
+
+    echo "install success."
 
     service ${SOFTWARE_SERVICE_NAME} start
 
@@ -205,20 +214,23 @@ function install()
 
 function uninstall()
 {
+    echo "Uninstall enter ..."
+
     rm -rf ${SOFTWARE_INSTALL_PATH}
     rm -rf ${SOFTWARE_LOG_PATH}
     rm -rf ${SOFTWARE_DATA_PATH}
 
     chkconfig --del ${SOFTWARE_SERVICE_NAME}
     rm /etc/init.d/${SOFTWARE_SERVICE_NAME}
+    echo "remove service success."
 
-    echo "Uninstall success."
+    echo "uninstall success."
     return 0
 }
 
 if [ ! `id -u` = "0" ]; then
     echo "Please run as root user"
-    exit 1
+    exit 5
 fi
 
 if [ $# -eq 0 ]; then
