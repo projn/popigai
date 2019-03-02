@@ -114,7 +114,7 @@ function install()
 }
 
 function package() {
-    nstall_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+    install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
     check_file ${install_package_path}
     if [ $? == 0 ]; then
     	echo "Package file ${install_package_path} exists."
