@@ -17,18 +17,35 @@ case "$1" in
         	echo "Starting service..."
 
             if [ "${2}" == "master" ];then
-                su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/cockroach start \
-                 --certs-dir=${SERVICE_INSTALL_PATH}/certs --background \
-                 --listen-addr=COCKROACHDB_HOST:COCKROACHDB_PORT --http-addr=COCKROACHDB_HOST:COCKROACHDB_UI_PORT \
-                 --log-dir=SOFTWARE_LOG_PATH --temp-dir=SOFTWARE_DATA_PATH/tmp \
-                 --store=SOFTWARE_DATA_PATH"
+                if [ "${3}" == "insecure" ]; then
+                    su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/cockroach start \
+                        --insecure --background \
+                        --listen-addr=COCKROACHDB_HOST:COCKROACHDB_PORT --http-addr=COCKROACHDB_HOST:COCKROACHDB_UI_PORT \
+                        --log-dir=SOFTWARE_LOG_PATH --temp-dir=SOFTWARE_DATA_PATH/tmp \
+                        --store=SOFTWARE_DATA_PATH"
+                else
+                    su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/cockroach start \
+                        --certs-dir=${SERVICE_INSTALL_PATH}/certs --background \
+                        --listen-addr=COCKROACHDB_HOST:COCKROACHDB_PORT --http-addr=COCKROACHDB_HOST:COCKROACHDB_UI_PORT \
+                        --log-dir=SOFTWARE_LOG_PATH --temp-dir=SOFTWARE_DATA_PATH/tmp \
+                        --store=SOFTWARE_DATA_PATH"
+                 fi
             else
-                su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/cockroach start \
-                 --certs-dir=${SERVICE_INSTALL_PATH}/certs  --background \
-                 --listen-addr=COCKROACHDB_HOST:COCKROACHDB_PORT --http-addr=COCKROACHDB_HOST:COCKROACHDB_UI_PORT \
-                 --log-dir=SOFTWARE_LOG_PATH --temp-dir=SOFTWARE_DATA_PATH/tmp \
-                 --store=SOFTWARE_DATA_PATH \
-                 --join=COCKROACHDB_MASTER_HOSTS"
+                if [ "${3}" == "insecure" ]; then
+                    su - ${SERVICE_USER_NAME} -c "${SERVICE_INSTALL_PATH}/cockroach start \
+                        --insecure --background \
+                        --listen-addr=COCKROACHDB_HOST:COCKROACHDB_PORT --http-addr=COCKROACHDB_HOST:COCKROACHDB_UI_PORT \
+                        --log-dir=SOFTWARE_LOG_PATH --temp-dir=SOFTWARE_DATA_PATH/tmp \
+                        --store=SOFTWARE_DATA_PATH \
+                        --join=COCKROACHDB_MASTER_HOSTS"
+                else
+                    su - ${SERVICE_USER_NAME}  -c "${SERVICE_INSTALL_PATH}/cockroach start \
+                        --certs-dir=${SERVICE_INSTALL_PATH}/certs --background \
+                        --listen-addr=COCKROACHDB_HOST:COCKROACHDB_PORT --http-addr=COCKROACHDB_HOST:COCKROACHDB_UI_PORT \
+                        --log-dir=SOFTWARE_LOG_PATH --temp-dir=SOFTWARE_DATA_PATH/tmp \
+                        --store=SOFTWARE_DATA_PATH \
+                        --join=COCKROACHDB_MASTER_HOSTS"
+                 fi
             fi
 
             sleep 2
