@@ -367,8 +367,8 @@ pipeline {
                 sshCommand remote:host, command:"cd ~/cockroachdb-install;echo 'COCKROACHDB_HOST=${hostIp}' >> config.properties;sh install.sh --install"
                 sshCommand remote:host, command:"mkdir -p ${SOFTWARE_INSTALL_PATH}/certs"
                 sshCommand remote:host, command:"mkdir -p ${SOFTWARE_INSTALL_PATH}/safe-dir"
-                sshPut remote:host, from:"./install/cockroachdb-install", into:"${SOFTWARE_INSTALL_PATH}/certs/ca.crt"
-                sshPut remote:host, from:"./install/cockroachdb-install", into:"${SOFTWARE_INSTALL_PATH}/safe-dir/ca.key"
+                sshPut remote:host, from:"./install/cockroachdb-install/ca.crt", into:"${SOFTWARE_INSTALL_PATH}/certs/ca.crt"
+                sshPut remote:host, from:"./install/cockroachdb-install/ca.key", into:"${SOFTWARE_INSTALL_PATH}/safe-dir/ca.key"
                 sshCommand remote:host, command:"chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}"
                 sshCommand remote:host, command:"cd ~/cockroachdb-install;sh install.sh --create-node-certs"
               }
