@@ -336,7 +336,7 @@ pipeline {
             script {
 
               def host = [:]
-              host.name = 'config'
+              host.name = 'cockroachdb'
               host.host = env.REMOTE_HOST_MASTER_IP
               host.user = env.REMOTE_HOST_USER
               host.password = env.REMOTE_HOST_PWD
@@ -356,13 +356,14 @@ pipeline {
                 String hostIp=hostList[i]
 
                 host = [:]
-                host.name = 'config'
+                host.name = 'cockroachdb'
                 host.host = "${hostIp}"
                 host.user = env.REMOTE_HOST_USER
                 host.password = env.REMOTE_HOST_PWD
                 host.allowAnyHosts = 'true'
 
                 sshCommand remote:host, command:"rm -rf ~/cockroachdb-install"
+                sshPut remote:host, from:"./install/cockroachdb-install", into:"."
                 sshCommand remote:host, command:"cd ~/cockroachdb-install;echo 'COCKROACHDB_HOST=${hostIp}' >> config.properties;sh install.sh --install"
                 sshCommand remote:host, command:"mkdir -p ${SOFTWARE_INSTALL_PATH}/certs"
                 sshCommand remote:host, command:"mkdir -p ${SOFTWARE_INSTALL_PATH}/safe-dir"
@@ -377,13 +378,10 @@ pipeline {
 
         stage('install kong') {
           environment {
-            REMOTE_HOST_IP_LIST='192.168.37.134,192.168.37.135'
+            REMOTE_HOST_IP_LIST='192.168.37.XXX,'
             REMOTE_HOST_USER='root'
             REMOTE_HOST_PWD='123456'
             KONG_POSTGRES_IP='192.168.34.XXX'
-            KONG_POSTGRES_HOST_IP='192.168.34.XXX'
-            KONG_POSTGRES_HOST_USER='root'
-            KONG_POSTGRES_HOST_PWD='123456'
             KONG_POSTGRES_PORT='5432'
             KONG_POSTGRES_DATABASE_NAME='kong'
             KONG_POSTGRES_USER='kong'
@@ -409,24 +407,13 @@ pipeline {
                   echo "KONG_POSTGRES_PASSWORD=${KONG_POSTGRES_PASSWORD}" >> config.properties'''
 
             script {
-              def host = [:]
-              host.name = 'postgres'
-              host.host = env.KONG_POSTGRES_HOST_IP
-              host.user = env.KONG_POSTGRES_HOST_USER
-              host.password = env.KONG_POSTGRES_HOST_PWD
-              host.allowAnyHosts = 'true'
-
-              sshCommand remote:host, command:"rm -rf ~/kong-install"
-              sshPut remote:host, from:"./install/kong-install", into:"."
-              sshCommand remote:host, command:"cd ~/kong-install;sh install.sh --install-db"
-
               String hostListStr=env.REMOTE_HOST_IP_LIST
 
               String[] hostList = hostListStr.split(",")
               for(int i=0; i<hostList.length; i++) {
                 String hostIp=hostList[i]
 
-                host = [:]
+                def host = [:]
                 host.name = 'kong'
                 host.host = "${hostIp}"
                 host.user = env.REMOTE_HOST_USER
