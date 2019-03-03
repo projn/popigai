@@ -38,6 +38,8 @@ pipeline {
 
           steps {
             sh '''cd ./install/alpsconfigserver-install; \\
+                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
+                  sh install.sh --package; \\
                   echo "SOFTWARE_SERVER_PORT=${SOFTWARE_SERVER_PORT}" >> config.properties; \\
                   echo "SOFTWARE_GIT_REMOTE_REPO_URL=${SOFTWARE_GIT_REMOTE_REPO_URL}" >> config.properties; \\
                   echo "SOFTWARE_GIT_REMOTE_REPO_USERNAME=${SOFTWARE_GIT_REMOTE_REPO_USERNAME}" >> config.properties; \\

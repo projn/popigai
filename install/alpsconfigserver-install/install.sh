@@ -225,7 +225,8 @@ function package()
         if [ $? == 0 ]; then
             cp -rf ${install_package_path} ./alpsconfigserver/
         else
-            return 1
+            echo "Package file ${install_package_path} does not exist."
+            exit 1
         fi
     fi
 }
