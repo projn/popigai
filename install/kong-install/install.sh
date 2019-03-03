@@ -12,6 +12,7 @@ function usage()
     echo "  --help                  : help."
     echo ""
     echo "  --install               : install."
+    echo "  --uninstall             : uninstall."
 }
 
 function check_user_group()
@@ -50,22 +51,6 @@ function check_dir()
     else
         return 2
     fi
-}
-
-function install_postgresql() {
-    yum install ${KONG_POSTGRES_RPM_URL}
-
-    yum install postgresql11-server
-
-    /usr/pgsql-11/bin/postgresql-11-setup initdb
-    systemctl enable postgresql-11
-    systemctl start postgresql-11
-
-groupadd postgres
-useradd -g postgres postgres
-passwd postgres
-
-/etc/rc.d/init.d/postgresql
 }
 
 function install()
@@ -176,11 +161,6 @@ function uninstall()
     return 0
 }
 
-if [ ! `id -u` = "0" ]; then
-    echo "Please run as root user"
-    exit 5
-fi
-
 if [ $# -eq 0 ]; then
     usage
     exit
@@ -189,6 +169,10 @@ fi
 opt=$1
 
 if [ "${opt}" == "--install" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
     install
 
     if [ $? != 0 ]; then
@@ -197,6 +181,10 @@ if [ "${opt}" == "--install" ]; then
     fi
     config
 elif [ "${opt}" == "--uninstall" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
     uninstall
 elif [ "${opt}" == "--help" ]; then
     usage

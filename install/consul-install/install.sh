@@ -181,9 +181,16 @@ function package()
     check_file ${install_package_path}
     if [ $? == 0 ]; then
     	echo "Package file ${install_package_path} exists."
-      return 0
+        return 0
+    else
+        install_package_path=${PACKAGE_REPO_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        check_file ${install_package_path}
+        if [ $? == 0 ]; then
+            cp -rf ${install_package_path} ./
+        else
+            wget https://releases.hashicorp.com/consul/${SOFTWARE_SOURCE_PACKAGE_VERSION}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        fi
     fi
-    wget https://releases.hashicorp.com/consul/${SOFTWARE_SOURCE_PACKAGE_VERSION}/${SOFTWARE_SOURCE_PACKAGE_NAME}
 }
 
 function uninstall()
@@ -199,11 +206,6 @@ function uninstall()
 
     return 0
 }
-
-if [ ! `id -u` = "0" ]; then
-    echo "Please run as root user"
-    exit 1
-fi
 
 if [ $# -eq 0 ]; then
     usage
