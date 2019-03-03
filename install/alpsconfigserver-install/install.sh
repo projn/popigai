@@ -212,6 +212,24 @@ function install()
     return 0
 }
 
+function package()
+{
+    install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+    check_file ${install_package_path}
+    if [ $? == 0 ]; then
+    	echo "Package file ${install_package_path} exists."
+        return 0
+    else
+        install_package_path=${PACKAGE_REPO_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        check_file ${install_package_path}
+        if [ $? == 0 ]; then
+            cp -rf ${install_package_path} ./alpsconfigserver/
+        else
+            return 1
+        fi
+    fi
+}
+
 function uninstall()
 {
     echo "Uninstall enter ..."
@@ -228,11 +246,6 @@ function uninstall()
     return 0
 }
 
-if [ ! `id -u` = "0" ]; then
-    echo "Please run as root user"
-    exit 5
-fi
-
 if [ $# -eq 0 ]; then
     usage
     exit
@@ -240,9 +253,19 @@ fi
 
 opt=$1
 
-if [ "${opt}" == "--install" ]; then
+if [ "${opt}" == "--package" ]; then
+    package
+elif [ "${opt}" == "--install" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
     install
 elif [ "${opt}" == "--uninstall" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
     uninstall
 elif [ "${opt}" == "--help" ]; then
     usage
