@@ -356,7 +356,7 @@ pipeline {
               for(int i=0; i<hostList.length; i++) {
                 String hostIp=hostList[i]
 
-                def host = [:]
+                host = [:]
                 host.name = 'config'
                 host.host = "${hostIp}"
                 host.user = env.REMOTE_HOST_USER
@@ -429,7 +429,7 @@ pipeline {
               for(int i=0; i<hostList.length; i++) {
                 String hostIp=hostList[i]
 
-                def host = [:]
+                host = [:]
                 host.name = 'kong'
                 host.host = "${hostIp}"
                 host.user = env.REMOTE_HOST_USER

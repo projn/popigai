@@ -207,11 +207,6 @@ function uninstall()
     return 0
 }
 
-if [ ! `id -u` = "0" ]; then
-    echo "Please run as root user"
-    exit 1
-fi
-
 if [ $# -eq 0 ]; then
     usage
     exit
