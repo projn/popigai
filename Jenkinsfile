@@ -344,8 +344,7 @@ pipeline {
 
               sshCommand remote:host, command:"rm -rf ~/cockroachdb-install"
               sshPut remote:host, from:"./install/cockroachdb-install", into:"."
-              sshCommand remote:host, command:"cd ~/cockroachdb-install;echo 'COCKROACHDB_HOST=${REMOTE_HOST_MASTER_IP}' >> config.properties;sh install.sh --install"
-              sshCommand remote:host, command:"sh install.sh --create-root-certs"
+              sshCommand remote:host, command:"cd ~/cockroachdb-install;echo 'COCKROACHDB_HOST=${REMOTE_HOST_MASTER_IP}' >> config.properties;sh install.sh --install;sh install.sh --create-root-certs"
 
               sshGet remote:host, from:"${SOFTWARE_INSTALL_PATH}/certs/ca.crt", into:"./install/cockroachdb-install/", override:true
               sshGet remote:host, from:"${SOFTWARE_INSTALL_PATH}/safe-dir/ca.key", into:"./install/cockroachdb-install/", override:true
@@ -370,7 +369,7 @@ pipeline {
                 sshPut remote:host, from:"./install/cockroachdb-install", into:"${SOFTWARE_INSTALL_PATH}/certs/ca.crt"
                 sshPut remote:host, from:"./install/cockroachdb-install", into:"${SOFTWARE_INSTALL_PATH}/safe-dir/ca.key"
                 sshCommand remote:host, command:"chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}"
-                sshCommand remote:host, command:"sh install.sh --create-node-certs"
+                sshCommand remote:host, command:"cd ~/cockroachdb-install;sh install.sh --create-node-certs"
               }
             }
           }
@@ -401,8 +400,6 @@ pipeline {
 
           steps {
             sh '''cd ./install/kong-install; \\
-                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
-                  sh install.sh --package; \\
                   echo "KONG_POSTGRES_IP=${KONG_POSTGRES_IP}" >> config.properties; \\
                   echo "KONG_POSTGRES_PORT=${KONG_POSTGRES_PORT}" >> config.properties; \\
                   echo "KONG_POSTGRES_DATABASE_NAME=${KONG_POSTGRES_DATABASE_NAME}" >> config.properties; \\
