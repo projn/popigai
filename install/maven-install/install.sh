@@ -96,12 +96,11 @@ function install()
     fi
 
     mkdir -p ${SOFTWARE_INSTALL_PATH}
+    chmod u=rwx,g=rx,o=r ${SOFTWARE_INSTALL_PATH}
+    chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
 
     tar -zxvf ${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME} \
         -C ${SOFTWARE_INSTALL_PATH}/
-
-    chmod u=rwx,g=r,o=r ${SOFTWARE_INSTALL_PATH}
-    chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
 
     echo "export MAVEN_HOME=${SOFTWARE_INSTALL_PATH}/${SOFTWARE_INSTALL_PACKAGE_NAME}">>/etc/profile
     echo 'export PATH=$PATH:$MAVEN_HOME/bin'>>/etc/profile
