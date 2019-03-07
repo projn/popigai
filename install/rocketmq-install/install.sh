@@ -31,6 +31,7 @@ function check_install()
     	echo "Service file ${service_file_path} do not exist."
       return 1
     fi
+
     return 0
 }
 
@@ -86,12 +87,12 @@ function install()
 
     	echo "Add user group ${SOFTWARE_USER_GROUP} success."
     fi
-    
+
     check_user ${SOFTWARE_USER_NAME}
     if [ $? != 0 ]; then
     	useradd -g ${SOFTWARE_USER_GROUP} -m ${SOFTWARE_USER_NAME}
         usermod -L ${SOFTWARE_USER_NAME}
-      
+
         echo "Add user ${SOFTWARE_USER_NAME} success."
     fi
 
@@ -104,16 +105,16 @@ function install()
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_DATA_PATH}
 
     mkdir -p ${SOFTWARE_LOG_PATH}
-    chmod u=rwx,g=r,o=r ${SOFTWARE_LOG_PATH}
+    chmod u=rwx,g=rx,o=r ${SOFTWARE_LOG_PATH}
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_LOG_PATH}
 
     package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
-    cp -rf ${package_path} ${SOFTWARE_INSTALL_PATH}/
+    unzip ${package_path} -d ${CUR_WORK_DIR}/
+    cp -rf ${CUR_WORK_DIR}/${SOFTWARE_INSTALL_PACKAGE_NAME}/* ${SOFTWARE_INSTALL_PATH}
+    rm -rf  ${CUR_WORK_DIR}/${SOFTWARE_INSTALL_PACKAGE_NAME}
 
     chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
-    chmod u=rwx,g=rx,o=r ${SOFTWARE_INSTALL_PATH}/${SOFTWARE_SOURCE_PACKAGE_NAME}
-
-    yum install -y git
+    #chmod -R u=rwx,g=rx,o=r ${SOFTWARE_INSTALL_PATH}
 
     return 0
 }
@@ -126,34 +127,46 @@ function config()
     dst=${SOFTWARE_USER_NAME}
     sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
 
-    src=SOFTWARE_PROCESS_NAME
-    dst=${JENKINS_PROCESS_NAME}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    src=SOFTWARE_BIND_IP
-    dst=${JENKINS_BIND_IP}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    src=SOFTWARE_PORT
-    dst=${JENKINS_PORT}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
     src=SOFTWARE_INSTALL_PATH
     dst=${SOFTWARE_INSTALL_PATH}
     sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
 
-    src=SOFTWARE_DATA_PATH
-    dst=${SOFTWARE_DATA_PATH}
+    src='127.0.0.1:9876'
+    dst=${ROCKETMQ_NAME_SERVER_HOST_INFO}
     sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
 
-    src=SOFTWARE_LOG_PATH
-    dst=${SOFTWARE_LOG_PATH}
+    src='127.0.0.1'
+    dst=${ROCKETMQ_BROKER_SERVER_HOST}
     sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
+
+    config_dir=${SOFTWARE_INSTALL_PATH}/conf/2m-2s-sync
+
+    echo "storePathRootDir=${SOFTWARE_DATA_PATH}" >> ${config_dir}/broker-a.properties
+    echo "storePathCommitLog=${SOFTWARE_DATA_PATH}/commitlog" >> ${config_dir}/broker-a.properties
+    echo "storePathRootDir=${SOFTWARE_DATA_PATH}" >> ${config_dir}/broker-a-s.properties
+    echo "storePathCommitLog=${SOFTWARE_DATA_PATH}/commitlog" >> ${config_dir}/broker-a-s.properties
+    echo "storePathRootDir=${SOFTWARE_DATA_PATH}" >> ${config_dir}/broker-b.properties
+    echo "storePathCommitLog=${SOFTWARE_DATA_PATH}/commitlog" >> ${config_dir}/broker-b.properties
+    echo "storePathRootDir=${SOFTWARE_DATA_PATH}" >> ${config_dir}/broker-b-s.properties
+    echo "storePathCommitLog=${SOFTWARE_DATA_PATH}/commitlog" >> ${config_dir}/broker-b-s.properties
+
+    echo "brokerIP1=${ROCKETMQ_BROKER_SERVER_MASTER_HOST_1}" >> ${config_dir}/broker-a.properties
+    echo "brokerIP1=${ROCKETMQ_BROKER_SERVER_SLAVER_HOST_1}" >> ${config_dir}/broker-a-s.properties
+    echo "brokerIP1=${ROCKETMQ_BROKER_SERVER_MASTER_HOST_2}" >> ${config_dir}/broker-b.properties
+    echo "brokerIP1=${ROCKETMQ_BROKER_SERVER_SLAVER_HOST_2}" >> ${config_dir}/broker-b-s.properties
+
+    log_config_dir=${SOFTWARE_INSTALL_PATH}/conf
+
+    temp="\${user.home}"
+
+    sed -i "s#${temp}#${SOFTWARE_LOG_PATH}#g" ${log_config_dir}/logback_broker.xml
+    sed -i "s#${temp}#${SOFTWARE_LOG_PATH}#g" ${log_config_dir}/logback_namesrv.xml
+    sed -i "s#${temp}#${SOFTWARE_LOG_PATH}#g" ${log_config_dir}/logback_tools.xml
 
     chmod 755 /etc/init.d/${SOFTWARE_SERVICE_NAME}
     chkconfig --add ${SOFTWARE_SERVICE_NAME}
 
-    echo "Install success."
+    echo "Install success,if just install for testing, please alter jvm opt in /bin/runserver.sh and /bin/runbroker.sh."
 }
 
 function package() {
@@ -168,10 +181,9 @@ function package() {
         if [ $? == 0 ]; then
             cp -rf ${install_package_path} ./
         else
-            wget https://mirrors.tuna.tsinghua.edu.cn/jenkins/war-stable/${SOFTWARE_SOURCE_PACKAGE_VERSION}/jenkins.war
+            wget http://mirrors.tuna.tsinghua.edu.cn/apache/rocketmq/${SOFTWARE_SOURCE_PACKAGE_VERSION}/${SOFTWARE_SOURCE_PACKAGE_NAME}
         fi
     fi
-
 }
 
 function uninstall()
@@ -184,9 +196,13 @@ function uninstall()
     rm /etc/init.d/${SOFTWARE_SERVICE_NAME}
 
     echo "Uninstall success."
-
     return 0
 }
+
+if [ ! `id -u` = "0" ]; then
+    echo "Please run as root user"
+    exit 5
+fi
 
 if [ $# -eq 0 ]; then
     usage
@@ -220,4 +236,3 @@ elif [ "${opt}" == "--help" ]; then
 else
     echo "Unknown argument"
 fi
-
