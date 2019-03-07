@@ -112,15 +112,15 @@ function install_redis()
     fi
 
     mkdir -p ${SOFTWARE_INSTALL_PATH}
-    chmod u=rwx,g=r,o=r ${SOFTWARE_INSTALL_PATH}
+    chmod u=rwx,g=rx,o=r ${SOFTWARE_INSTALL_PATH}
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
 
     mkdir -p ${SOFTWARE_DATA_PATH}
-    chmod u=rwx,g=r,o=r ${SOFTWARE_DATA_PATH}
+    chmod u=rwx,g=rx,o=r ${SOFTWARE_DATA_PATH}
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_DATA_PATH}
 
     mkdir -p ${SOFTWARE_LOG_PATH}
-    chmod u=rwx,g=r,o=r ${SOFTWARE_LOG_PATH}
+    chmod u=rwx,g=rx,o=r ${SOFTWARE_LOG_PATH}
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_LOG_PATH}
 
     package_dir=${CURRENT_WORK_DIR}/${SOFTWARE_INSTALL_PACKAGE_NAME}

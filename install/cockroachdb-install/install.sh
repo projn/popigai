@@ -99,31 +99,19 @@ function install()
         echo "Add user ${SOFTWARE_USER_NAME} success."
     fi
 
-    father_dir=`dirname ${SOFTWARE_INSTALL_PATH}`
-    mkdir -p ${father_dir}
-    chmod 755 ${father_dir}
     mkdir -p ${SOFTWARE_INSTALL_PATH}
-    chmod 700 ${SOFTWARE_INSTALL_PATH}
     mkdir -p ${SOFTWARE_INSTALL_PATH}/certs
-    chmod 700 ${SOFTWARE_INSTALL_PATH}/certs
     mkdir -p ${SOFTWARE_INSTALL_PATH}/safe-dir
-    chmod 700 ${SOFTWARE_INSTALL_PATH}/safe-dir
+    chmod u=rwx,g=rx,o=r ${SOFTWARE_INSTALL_PATH}
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
 
-    father_dir=`dirname ${SOFTWARE_DATA_PATH}`
-    mkdir -p ${father_dir}
-    chmod 755 ${father_dir}
     mkdir -p ${SOFTWARE_DATA_PATH}
-    chmod 700 ${SOFTWARE_DATA_PATH}
     mkdir -p ${SOFTWARE_DATA_PATH}/tmp
-    chmod 700 ${SOFTWARE_DATA_PATH}/tmp
-    chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_DATA_PATH}
+    chmod u=rwx,g=rx,o=r ${SOFTWARE_DATA_PATH}
+    chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_DATA_PATH}
 
-    father_dir=`dirname ${SOFTWARE_LOG_PATH}`
-    mkdir -p ${father_dir}
-    chmod 755 ${father_dir}
     mkdir -p ${SOFTWARE_LOG_PATH}
-    chmod 700 ${SOFTWARE_LOG_PATH}
+    chmod u=rwx,g=rx,o=r ${SOFTWARE_LOG_PATH}
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_LOG_PATH}
 
     package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
@@ -131,7 +119,6 @@ function install()
     cp -rf ${CUR_WORK_DIR}/${SOFTWARE_INSTALL_PACKAGE_NAME}/* ${SOFTWARE_INSTALL_PATH}
 
     chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
-    chmod -R u=rwx,g=rwx,o=r ${SOFTWARE_INSTALL_PATH}
 
     return 0
 }
@@ -202,13 +189,21 @@ function create_client_certs() {
 
 function package()
 {
+
     install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
     check_file ${install_package_path}
     if [ $? == 0 ]; then
     	echo "Package file ${install_package_path} exists."
-      return 0
+        return 0
+    else
+        install_package_path=${PACKAGE_REPO_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        check_file ${install_package_path}
+        if [ $? == 0 ]; then
+            cp -rf ${install_package_path} ./
+        else
+            wget https://binaries.cockroachdb.com/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        fi
     fi
-    wget https://binaries.cockroachdb.com/${SOFTWARE_SOURCE_PACKAGE_NAME}
 }
 
 function uninstall()
