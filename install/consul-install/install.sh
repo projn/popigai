@@ -110,15 +110,15 @@ function install()
     fi
 
     mkdir -p ${SOFTWARE_INSTALL_PATH}
-    chmod u=rwx,g=r,o=r ${SOFTWARE_INSTALL_PATH}
+    chmod u=rwx,g=rx,o=r ${SOFTWARE_INSTALL_PATH}
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
 
     mkdir -p ${SOFTWARE_DATA_PATH}
-    chmod u=rwx,g=r,o=r ${SOFTWARE_DATA_PATH}
+    chmod u=rwx,g=rx,o=r ${SOFTWARE_DATA_PATH}
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_DATA_PATH}
 
     mkdir -p ${SOFTWARE_LOG_PATH}
-    chmod u=rwx,g=r,o=r ${SOFTWARE_LOG_PATH}
+    chmod u=rwx,g=rx,o=r ${SOFTWARE_LOG_PATH}
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_LOG_PATH}
 
     package_dir=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
@@ -129,8 +129,7 @@ function install()
     cp -rf ${CURRENT_WORK_DIR}/config.json ${SOFTWARE_INSTALL_PATH}/
 
     chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
-    find ${SOFTWARE_INSTALL_PATH} -type d -exec chmod 700 {} \;
-    chmod -R u=rwx,g=rwx,o=r ${SOFTWARE_INSTALL_PATH}
+    chmod u=rwx,g=rwx,o=r ${SOFTWARE_INSTALL_PATH}/config.json
 
     src=SOFTWARE_DATA_PATH
     dst=${SOFTWARE_DATA_PATH}
