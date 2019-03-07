@@ -101,19 +101,20 @@ function install()
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
 
     mkdir -p ${SOFTWARE_DATA_PATH}
-    chmod u=rw,g=r,o=r ${SOFTWARE_DATA_PATH}
+    chmod u=rwx,g=rx,o=r ${SOFTWARE_DATA_PATH}
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_DATA_PATH}
 
     mkdir -p ${SOFTWARE_LOG_PATH}
-    chmod u=rw,g=r,o=r ${SOFTWARE_LOG_PATH}
+    chmod u=rwx,g=rx,o=r ${SOFTWARE_LOG_PATH}
     chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_LOG_PATH}
 
     package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
-    tar zxvf ${package_path} -C ${CUR_WORK_DIR}/
+    unzip ${package_path} -d ${CUR_WORK_DIR}/
     cp -rf ${CUR_WORK_DIR}/${SOFTWARE_INSTALL_PACKAGE_NAME}/* ${SOFTWARE_INSTALL_PATH}
+    rm -rf  ${CUR_WORK_DIR}/${SOFTWARE_INSTALL_PACKAGE_NAME}
 
     chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
-    chmod -R u=rwx,g=rwx,o=r ${SOFTWARE_INSTALL_PATH}
+    #chmod -R u=rwx,g=rx,o=r ${SOFTWARE_INSTALL_PATH}
 
     return 0
 }
@@ -130,6 +131,14 @@ function config()
     dst=${SOFTWARE_INSTALL_PATH}
     sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
 
+    src='127.0.0.1:9876'
+    dst=${ROCKETMQ_NAME_SERVER_HOST_INFO}
+    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
+
+    src='127.0.0.1'
+    dst=${ROCKETMQ_BROKER_SERVER_HOST}
+    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
+
     config_dir=${SOFTWARE_INSTALL_PATH}/conf/2m-2s-sync
 
     echo "storePathRootDir=${SOFTWARE_DATA_PATH}" >> ${config_dir}/broker-a.properties
@@ -141,35 +150,40 @@ function config()
     echo "storePathRootDir=${SOFTWARE_DATA_PATH}" >> ${config_dir}/broker-b-s.properties
     echo "storePathCommitLog=${SOFTWARE_DATA_PATH}/commitlog" >> ${config_dir}/broker-b-s.properties
 
-    echo "brokerIP1=${ROCKETMQ_BROKER_SERVER_HOST_1}" >> ${config_dir}/broker-a.properties
-    echo "brokerIP1=${ROCKETMQ_BROKER_SERVER_HOST_1}" >> ${config_dir}/broker-b-s.properties
-
-    echo "brokerIP1=${ROCKETMQ_BROKER_SERVER_HOST_2}" >> ${config_dir}/broker-a-s.properties
-    echo "brokerIP1=${ROCKETMQ_BROKER_SERVER_HOST_2}" >> ${config_dir}/broker-b.properties
+    echo "brokerIP1=${ROCKETMQ_BROKER_SERVER_MASTER_HOST_1}" >> ${config_dir}/broker-a.properties
+    echo "brokerIP1=${ROCKETMQ_BROKER_SERVER_SLAVER_HOST_1}" >> ${config_dir}/broker-a-s.properties
+    echo "brokerIP1=${ROCKETMQ_BROKER_SERVER_MASTER_HOST_2}" >> ${config_dir}/broker-b.properties
+    echo "brokerIP1=${ROCKETMQ_BROKER_SERVER_SLAVER_HOST_2}" >> ${config_dir}/broker-b-s.properties
 
     log_config_dir=${SOFTWARE_INSTALL_PATH}/conf
 
     temp="\${user.home}"
 
-    sed -i "s#${temp}#${SOFTWARE_LOG_PATH}#g" ${SOFTWARE_INSTALL_PATH}/logback_broker.xml
-    sed -i "s#${temp}#${SOFTWARE_LOG_PATH}#g" ${SOFTWARE_INSTALL_PATH}/logback_namesrv.xml
-    sed -i "s#${temp}#${SOFTWARE_LOG_PATH}#g" ${SOFTWARE_INSTALL_PATH}/logback_tools.xml
+    sed -i "s#${temp}#${SOFTWARE_LOG_PATH}#g" ${log_config_dir}/logback_broker.xml
+    sed -i "s#${temp}#${SOFTWARE_LOG_PATH}#g" ${log_config_dir}/logback_namesrv.xml
+    sed -i "s#${temp}#${SOFTWARE_LOG_PATH}#g" ${log_config_dir}/logback_tools.xml
 
     chmod 755 /etc/init.d/${SOFTWARE_SERVICE_NAME}
     chkconfig --add ${SOFTWARE_SERVICE_NAME}
 
-    echo "Install success."
+    echo "Install success,if just install for testing, please alter jvm opt in /bin/runserver.sh and /bin/runbroker.sh."
 }
 
-function package()
-{
+function package() {
     install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
     check_file ${install_package_path}
     if [ $? == 0 ]; then
     	echo "Package file ${install_package_path} exists."
-      return 0
+        return 0
+    else
+        install_package_path=${PACKAGE_REPO_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        check_file ${install_package_path}
+        if [ $? == 0 ]; then
+            cp -rf ${install_package_path} ./
+        else
+            wget http://mirrors.tuna.tsinghua.edu.cn/apache/rocketmq/${SOFTWARE_SOURCE_PACKAGE_VERSION}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        fi
     fi
-    wget https://artifacts.elastic.co/downloads/elasticsearch/${SOFTWARE_SOURCE_PACKAGE_NAME}
 }
 
 function uninstall()
