@@ -2,7 +2,7 @@ pipeline {
   agent any
   environment {
     PACKAGE_REPO_DIR=''
-    INSTALL_GIT_FLAG='true'
+    INSTALL_GIT_FLAG='false'
     INSTALL_HARBOR_FLAG='true'
     INSTALL_NEXUS_FLAG='true'
 
