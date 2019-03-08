@@ -2,6 +2,7 @@ pipeline {
   agent any
   environment {
     PACKAGE_REPO_DIR=''
+    INSTALL_GIT_FLAG='true'
     INSTALL_HARBOR_FLAG='true'
     INSTALL_NEXUS_FLAG='true'
 
@@ -10,6 +11,40 @@ pipeline {
   stages {
     stage('repo') {
       parallel {
+        stage('install git') {
+          environment {
+            REMOTE_HOST_IP='192.168.37.XXX'
+            REMOTE_HOST_USER='root'
+            REMOTE_HOST_PWD='123456'
+            GIT_USER_PASSWORD='pwd'
+          }
+
+          when {
+            not {
+              environment name: 'INSTALL_GIT_FLAG', value: 'false'
+            }
+          }
+
+          steps {
+            sh '''cd ./install/git-install; \\
+                  echo "GIT_USER_PASSWORD=${GIT_USER_PASSWORD}" >> config.properties'''
+
+            script {
+              def host = [:]
+              host.name = 'habor'
+              host.host = env.REMOTE_HOST_IP
+              host.user = env.REMOTE_HOST_USER
+              host.password = env.REMOTE_HOST_PWD
+              host.allowAnyHosts = 'true'
+
+              sshCommand remote:host, command:"rm -rf ~/git-install"
+              sshPut remote:host, from:"./install/git-install", into:"."
+              sshCommand remote:host, command:"cd ~/git-install;sh install.sh --install"
+            }
+
+          }
+        }
+
         stage('install harbor') {
           environment {
             REMOTE_HOST_IP='192.168.37.XXX'
