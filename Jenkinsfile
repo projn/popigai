@@ -44,6 +44,7 @@ pipeline {
               sshPut remote:host, from:"./install/harbor-install", into:"."
               sshCommand remote:host, command:"cd ~/harbor-install;sh install.sh --install"
             }
+            
           }
         }
 
