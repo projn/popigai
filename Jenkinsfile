@@ -57,6 +57,8 @@ pipeline {
                   sh install.sh --package'''
             sh '''cd ./install/jenkins-install; \\
                   echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
+                  echo "JENKINS_BIND_IP=${JENKINS_BIND_IP}" >> config.properties; \\
+                  echo "JENKINS_PORT=${JENKINS_PORT}" >> config.properties; \\
                   sh install.sh --package'''
 
             script {
