@@ -66,19 +66,33 @@ function install()
     yum install -y curl policycoreutils-python openssh-server
     systemctl enable sshd
     systemctl start sshd
-    firewall-cmd --permanent --add-service=http
-    systemctl reload firewalld
+    #firewall-cmd --permanent --add-service=http
+    #systemctl reload firewalld
 
-    sudo yum install postfix
-    sudo systemctl enable postfix
-    sudo systemctl start postfix
+    #sudo yum install postfix
+    #sudo systemctl enable postfix
+    #sudo systemctl start postfix
 
     curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh | sudo bash
 
+    rem -f /etc/yum.repos.d/gitlab-ce.repo
+    echo "[gitlab-ce]
+name=gitlab-ce
+baseurl=http://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el7
+repo_gpgcheck=0
+gpgcheck=0
+enabled=1
+gpgkey=https://packages.gitlab.com/gpg.key" >> /etc/yum.repos.d/gitlab-ce.repo
+
+    yum makecache
+    yum install -y gitlab-ce
+
     config_path=/etc/gitlab/gitlab.rb
-    src='external_url "http://gitlab.example.com"'
+    src="external_url 'http://gitlab.example.com'"
     dst='external_url "'${GITLAB_URL}'"'
     sed -i "s#$src#$dst#g" ${config_path}
+
+    gitlab-ctl reconfigure
 
     echo "Install success, this install script just for testing,if you want to use more performance, please see doc https://docs.gitlab.com"
 
