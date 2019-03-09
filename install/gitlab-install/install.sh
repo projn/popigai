@@ -63,6 +63,31 @@ function install()
 {
     echo "Begin install..."
 
+    yum install -y curl policycoreutils-python openssh-server
+    systemctl enable sshd
+    systemctl start sshd
+    firewall-cmd --permanent --add-service=http
+    systemctl reload firewalld
+
+    sudo yum install postfix
+    sudo systemctl enable postfix
+    sudo systemctl start postfix
+
+    curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh | sudo bash
+
+    config_path=/etc/gitlab/gitlab.rb
+    src='external_url "http://gitlab.example.com"'
+    dst='external_url "'${GITLAB_URL}'"'
+    sed -i "s#$src#$dst#g" ${config_path}
+
+    echo "Install success, this install script just for testing,if you want to use more performance, please see doc https://docs.gitlab.com"
+
+}
+
+function install_git()
+{
+    echo "Begin install..."
+
     yum install -y git
     useradd git
     echo "${GIT_USER_PASSWORD}" | passwd --stdin git
@@ -70,6 +95,7 @@ function install()
     mkdir -p ./repository
     chown -R git:git repository
     chsh -s $(command -v git-shell) git
+
     echo "Install success,
         use cmd 'mkdir -p repository/sample.git; git init --bare repository/sample.git' to add a repository named sample,
         and change mod by cmd 'chown -R git:git repository/'."
