@@ -75,7 +75,7 @@ function install()
 
     curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh | sudo bash
 
-    rem -f /etc/yum.repos.d/gitlab-ce.repo
+    rm -f /etc/yum.repos.d/gitlab-ce.repo
     echo "[gitlab-ce]
 name=gitlab-ce
 baseurl=http://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el7
