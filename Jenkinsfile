@@ -55,7 +55,7 @@ pipeline {
             REMOTE_HOST_PWD='123456'
             NEXUS_BIND_IP='192.168.37.XXX'
             NEXUS_PORT='8082'
-            MAVEN_INSTALL_NEXUS_SETTING=false
+            MAVEN_INSTALL_NEXUS_SETTING='false'
           }
 
           when {
