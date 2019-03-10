@@ -133,8 +133,8 @@ under the License.
 
         <server>
             <id>nexus-public</id>
-            <username>admin</username>
-            <password>admin123</password>
+            <username>MAVEN_INSTALL_NEXUS_USERNAME</username>
+            <password>MAVEN_INSTALL_NEXUS_PWD</password>
         </server>
 
     </servers>
@@ -167,7 +167,7 @@ under the License.
             <id>nexus</id>
             <mirrorOf>*</mirrorOf>
             <name>nexus public repositories</name>
-            <url>http://192.168.37.152:8082/repository/maven-public/</url>
+            <url>http://MAVEN_INSTALL_NEXUS_HOST:MAVEN_INSTALL_NEXUS_PORT/repository/maven-public/</url>
         </mirror>
     </mirrors>
 
@@ -265,7 +265,7 @@ under the License.
             <repositories>
                 <repository>
                     <id>central</id>
-                    <url>http://192.168.37.XXX:8082/repository/maven-public/</url>
+                    <url>http://MAVEN_INSTALL_NEXUS_HOST:MAVEN_INSTALL_NEXUS_PORT/repository/maven-public/</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
@@ -277,7 +277,7 @@ under the License.
             <pluginRepositories>
                 <pluginRepository>
                     <id>central</id>
-                    <url>http://192.168.37.XXX:8082/repository/maven-public/</url>
+                    <url>http://MAVEN_INSTALL_NEXUS_HOST:MAVEN_INSTALL_NEXUS_PORT/repository/maven-public/</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
