@@ -55,11 +55,7 @@ pipeline {
             REMOTE_HOST_PWD='123456'
             NEXUS_BIND_IP='192.168.37.XXX'
             NEXUS_PORT='8082'
-            MAVEN_INSTALL_NEXUS_SETTING=true
-            MAVEN_INSTALL_NEXUS_HOST=192.168.37.XXX
-            MAVEN_INSTALL_NEXUS_PORT=8082
-            MAVEN_INSTALL_NEXUS_USERNAME=admin
-            MAVEN_INSTALL_NEXUS_PWD=admin123
+            MAVEN_INSTALL_NEXUS_SETTING=false
           }
 
           when {
@@ -72,10 +68,6 @@ pipeline {
             sh '''cd ./install/maven-install; \\
                   echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
                   echo "MAVEN_INSTALL_NEXUS_SETTING=${MAVEN_INSTALL_NEXUS_SETTING}" >> config.properties; \\
-                  echo "MAVEN_INSTALL_NEXUS_HOST=${MAVEN_INSTALL_NEXUS_HOST}" >> config.properties; \\
-                  echo "MAVEN_INSTALL_NEXUS_PORT=${MAVEN_INSTALL_NEXUS_PORT}" >> config.properties; \\
-                  echo "MAVEN_INSTALL_NEXUS_USERNAME=${MAVEN_INSTALL_NEXUS_USERNAME}" >> config.properties; \\
-                  echo "MAVEN_INSTALL_NEXUS_PWD=${MAVEN_INSTALL_NEXUS_PWD}" >> config.properties; \\
                   sh install.sh --package'''
             sh '''cd ./install/nexus-install; \\
                   echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
