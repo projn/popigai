@@ -53,11 +53,11 @@ pipeline {
           environment {
             JENKINS_BIND_IP='192.168.37.XXX'
             JENKINS_PORT='8081'
-            MAVEN_INSTALL_NEXUS_SETTING=true
-            MAVEN_INSTALL_NEXUS_HOST=192.168.37.XXX
-            MAVEN_INSTALL_NEXUS_PORT=8082
-            MAVEN_INSTALL_NEXUS_USERNAME=admin
-            MAVEN_INSTALL_NEXUS_PWD=admin123
+            MAVEN_INSTALL_NEXUS_SETTING='true'
+            MAVEN_INSTALL_NEXUS_HOST='192.168.37.XXX'
+            MAVEN_INSTALL_NEXUS_PORT='8082'
+            MAVEN_INSTALL_NEXUS_USERNAME='admin'
+            MAVEN_INSTALL_NEXUS_PWD='admin123'
           }
 
           steps {
