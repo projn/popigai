@@ -132,7 +132,12 @@ under the License.
         -->
 
         <server>
-            <id>nexus-public</id>
+            <id>nexus-releases</id>
+            <username>MAVEN_INSTALL_NEXUS_USERNAME</username>
+            <password>MAVEN_INSTALL_NEXUS_PWD</password>
+        </server>
+        <server>
+            <id>nexus-snapshots</id>
             <username>MAVEN_INSTALL_NEXUS_USERNAME</username>
             <password>MAVEN_INSTALL_NEXUS_PWD</password>
         </server>
