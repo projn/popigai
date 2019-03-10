@@ -64,25 +64,50 @@ function install()
 
     yum repolist
     yum install -y docker-ce
-    mkdir -p /etc/docker
-#    rm -rf /etc/docker/daemon.json
-#    echo "{"  >> /etc/docker/daemon.json
-#    echo '"registry-mirrors": ["https://5q5g7ksn.mirror.aliyuncs.com"]'  >> /etc/docker/daemon.json
-#    echo "}"  >> /etc/docker/daemon.json
+
+    if [ "$DOCKER_REPO_MIRROR_URL" != "" ] || ["$DOCKER_HARBOR_INSECURE_ADDRESS" !="" ]; then
+        mkdir -p /etc/docker
+        rm -rf /etc/docker/daemon.json
+        echo "{"  >> /etc/docker/daemon.json
+        if [ "$DOCKER_REPO_MIRROR_URL" != "" ]; then
+            echo '"registry-mirrors": ["'${DOCKER_REPO_MIRROR_URL}'"]'  >> /etc/docker/daemon.json
+        fi
+        if [ "$DOCKER_HARBOR_INSECURE_ADDRESS" != "" ]; then
+            echo '"insecure-registries": ["'${DOCKER_HARBOR_INSECURE_ADDRESS}'"]'  >> /etc/docker/daemon.json
+        fi
+        echo "}"  >> /etc/docker/daemon.json
+        systemctl daemon-reload
+        systemctl restart docker
+    fi
 
     systemctl enable docker
-    systemctl daemon-reload
-    systemctl restart docker
 
-    echo "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)"
-
-    curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    cp -f ${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME} /usr/local/bin/docker-compose
 
     chmod +x /usr/local/bin/docker-compose
 
     echo "Install success."
 
     return 0
+}
+
+function package() {
+    install_package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+    check_file ${install_package_path}
+    if [ $? == 0 ]; then
+    	echo "Package file ${install_package_path} exists."
+        return 0
+    else
+        install_package_path=${PACKAGE_REPO_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
+        check_file ${install_package_path}
+        if [ $? == 0 ]; then
+            cp -rf ${install_package_path} ./
+        else
+            echo "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)"
+            curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o ./
+        fi
+    fi
+
 }
 
 if [ ! `id -u` = "0" ]; then
@@ -97,7 +122,9 @@ fi
 
 opt=$1
 
-if [ "${opt}" == "--install" ]; then
+if [ "${opt}" == "--package" ]; then
+    package
+elif [ "${opt}" == "--install" ]; then
     install
     if [ $? != 0 ]; then
         echo "Install failed,check it please."

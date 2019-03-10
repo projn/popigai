@@ -12,7 +12,18 @@ pipeline {
     stage('build') {
       parallel {
         stage('install docker') {
+          environment {
+            DOCKER_REPO_MIRROR_URL='https://5q5g7ksn.mirror.aliyuncs.com'
+            DOCKER_HARBOR_INSECURE_ADDRESS='192.168.37.XXX:80'
+          }
+
           steps {
+            sh '''cd ./install/docker-install; \\
+                  echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
+                  echo "DOCKER_REPO_MIRROR_URL=${DOCKER_REPO_MIRROR_URL}" >> config.properties; \\
+                  echo "DOCKER_HARBOR_INSECURE_ADDRESS=${DOCKER_HARBOR_INSECURE_ADDRESS}" >> config.properties; \\
+                  sh install.sh --package'''
+
             script {
               def host = [:]
               host.name = 'docker'
