@@ -104,7 +104,7 @@ function package() {
             cp -rf ${install_package_path} ./
         else
             echo "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)"
-            curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o ./
+            curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o ./${SOFTWARE_SOURCE_PACKAGE_NAME}
         fi
     fi
 
