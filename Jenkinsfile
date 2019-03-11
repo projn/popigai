@@ -84,8 +84,8 @@ pipeline {
                   echo "PACKAGE_REPO_DIR=${PACKAGE_REPO_DIR}" >> config.properties; \\
                   echo "JENKINS_BIND_IP=${JENKINS_BIND_IP}" >> config.properties; \\
                   echo "JENKINS_PORT=${JENKINS_PORT}" >> config.properties; \\
-                  sed -i s#SOFTWARE_USER_GROUP=cloudgrp#SOFTWARE_USER_GROUP=root#g" config.properties; \\
-                  sed -i s#SOFTWARE_USER_NAME=cloud#SOFTWARE_USER_NAME=root#g" config.properties; \\
+                  sed -i "s#SOFTWARE_USER_GROUP=cloudgrp#SOFTWARE_USER_GROUP=root#g" config.properties; \\
+                  sed -i "s#SOFTWARE_USER_NAME=cloud#SOFTWARE_USER_NAME=root#g" config.properties; \\
                   sh install.sh --package'''
 
             script {

@@ -110,11 +110,6 @@ function package() {
 
 }
 
-if [ ! `id -u` = "0" ]; then
-    echo "Please run as root user"
-    exit 5
-fi
-
 if [ $# -eq 0 ]; then
     usage
     exit
@@ -125,6 +120,10 @@ opt=$1
 if [ "${opt}" == "--package" ]; then
     package
 elif [ "${opt}" == "--install" ]; then
+    if [ ! `id -u` = "0" ]; then
+        echo "Please run as root user"
+        exit 2
+    fi
     install
     if [ $? != 0 ]; then
         echo "Install failed,check it please."
