@@ -107,6 +107,49 @@ function install()
 
     source /etc/profile
 
+    if [ "${MAVEN_INSTALL_NEXUS_SETTING}" == "true" ]; then
+        if [ "${SOFTWARE_USER_NAME}" == "root" ]; then
+            cp ${CURRENT_WORK_DIR}/settings.xml /${SOFTWARE_USER_NAME}/.m2/settings.xml
+            chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} /${SOFTWARE_USER_NAME}/.m2
+
+            src=MAVEN_INSTALL_NEXUS_HOST
+            dst=${MAVEN_INSTALL_NEXUS_HOST}
+            sed -i "s#$src#$dst#g" /${SOFTWARE_USER_NAME}/.m2/settings.xml
+
+            src=MAVEN_INSTALL_NEXUS_PORT
+            dst=${MAVEN_INSTALL_NEXUS_PORT}
+            sed -i "s#$src#$dst#g" /${SOFTWARE_USER_NAME}/.m2/settings.xml
+
+            src=MAVEN_INSTALL_NEXUS_USERNAME
+            dst=${MAVEN_INSTALL_NEXUS_USERNAME}
+            sed -i "s#$src#$dst#g" /${SOFTWARE_USER_NAME}/.m2/settings.xml
+
+            src=MAVEN_INSTALL_NEXUS_PWD
+            dst=${MAVEN_INSTALL_NEXUS_PWD}
+            sed -i "s#$src#$dst#g" /${SOFTWARE_USER_NAME}/.m2/settings.xml
+        else
+            mkdir -p /home/${SOFTWARE_USER_NAME}/.m2/
+            cp ${CURRENT_WORK_DIR}/settings.xml /home/${SOFTWARE_USER_NAME}/.m2/settings.xml
+            chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} /home/${SOFTWARE_USER_NAME}/.m2
+
+            src=MAVEN_INSTALL_NEXUS_HOST
+            dst=${MAVEN_INSTALL_NEXUS_HOST}
+            sed -i "s#$src#$dst#g" /home/${SOFTWARE_USER_NAME}/.m2/settings.xml
+
+            src=MAVEN_INSTALL_NEXUS_PORT
+            dst=${MAVEN_INSTALL_NEXUS_PORT}
+            sed -i "s#$src#$dst#g" /home/${SOFTWARE_USER_NAME}/.m2/settings.xml
+
+            src=MAVEN_INSTALL_NEXUS_USERNAME
+            dst=${MAVEN_INSTALL_NEXUS_USERNAME}
+            sed -i "s#$src#$dst#g" /home/${SOFTWARE_USER_NAME}/.m2/settings.xml
+
+            src=MAVEN_INSTALL_NEXUS_PWD
+            dst=${MAVEN_INSTALL_NEXUS_PWD}
+            sed -i "s#$src#$dst#g" /home/${SOFTWARE_USER_NAME}/.m2/settings.xml
+        fi
+    fi
+
     echo "Install success,use cmd 'source /etc/profile' to make it in use."
 
     return 0

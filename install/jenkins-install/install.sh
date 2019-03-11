@@ -153,7 +153,9 @@ function config()
     chmod 755 /etc/init.d/${SOFTWARE_SERVICE_NAME}
     chkconfig --add ${SOFTWARE_SERVICE_NAME}
 
-    echo "Install success."
+    echo "Install success,if you want to use pipeline,you need to install
+        Dashboard View/SSH Agent/Cobertura/Junit/github/git/Publish Over SSH/SSH/
+        BlueOcean/Warnings Next Generation/SSH Pipeline Steps plugin."
 }
 
 function package() {
