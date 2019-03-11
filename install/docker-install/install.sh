@@ -73,6 +73,7 @@ function install()
             echo '"registry-mirrors": ["'${DOCKER_REPO_MIRROR_URL}'"]'  >> /etc/docker/daemon.json
         fi
         if [ "$DOCKER_HARBOR_INSECURE_ADDRESS" != "" ]; then
+            echo ','  >> /etc/docker/daemon.json
             echo '"insecure-registries": ["'${DOCKER_HARBOR_INSECURE_ADDRESS}'"]'  >> /etc/docker/daemon.json
         fi
         echo "}"  >> /etc/docker/daemon.json
