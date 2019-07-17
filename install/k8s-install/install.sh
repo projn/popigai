@@ -78,6 +78,10 @@ function init_host_step1()
 
     # 检查默认内核版本是否大于4.14，否则请调整默认启动参数
     #grub2-editenv list
+    # 修改grub中默认的内核版本
+    #vim /etc/default/grub
+    # GRUB_DEFAULT=saved --> GRUB_DEFAULT=0
+    #grub2-mkconfig -o /boot/grub2/grub.cfg
 
     # 重启以更换内核
     reboot
@@ -139,8 +143,10 @@ function pre_install_k8s()
     fi
 
     cd /etc/yum.repos.d/
+    rm -rf /etc/yum.repos.d/docker-ce.repo*
     wget https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 
+    rm -rf /etc/yum.repos.d/kubernetes.repo
     echo "[kubernetes]" >> /etc/yum.repos.d/kubernetes.repo
     echo "name=Kubernetes Repo" >> /etc/yum.repos.d/kubernetes.repo
     echo "baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/" >> /etc/yum.repos.d/kubernetes.repo
@@ -151,8 +157,10 @@ function pre_install_k8s()
     yum repolist
     yum install -y docker-ce kubelet kubeadm kubectl
     mkdir -p /etc/docker
+    rm -rf /etc/docker/daemon.json
     echo "{"  >> /etc/docker/daemon.json
-    echo '"registry-mirrors": ["https://5q5g7ksn.mirror.aliyuncs.com"]'  >> /etc/docker/daemon.json
+    echo '"registry-mirrors": ["https://5q5g7ksn.mirror.aliyuncs.com"],'  >> /etc/docker/daemon.json
+    echo '"exec-opts": ["native.cgroupdriver=systemd"]'  >> /etc/docker/daemon.json
     echo "}"  >> /etc/docker/daemon.json
 
     systemctl enable kubelet
@@ -163,21 +171,23 @@ function pre_install_k8s()
     systemctl restart docker
     systemctl restart kubelet
 
-    docker pull mirrorgooglecontainers/kube-apiserver-amd64:v1.13.3
-    docker pull mirrorgooglecontainers/kube-controller-manager-amd64:v1.13.3
-    docker pull mirrorgooglecontainers/kube-scheduler-amd64:v1.13.3
-    docker pull mirrorgooglecontainers/kube-proxy-amd64:v1.13.3
-    docker pull mirrorgooglecontainers/pause:3.1
-    docker pull mirrorgooglecontainers/etcd-amd64:3.2.24
-    docker pull coredns/coredns:1.2.6
+    #kubeadm config images list
 
-    docker tag mirrorgooglecontainers/kube-proxy-amd64:v1.13.3 k8s.gcr.io/kube-proxy:v1.13.3
-    docker tag mirrorgooglecontainers/kube-apiserver-amd64:v1.13.3 k8s.gcr.io/kube-apiserver:v1.13.3
-    docker tag mirrorgooglecontainers/kube-controller-manager-amd64:v1.13.3 k8s.gcr.io/kube-controller-manager:v1.13.3
-    docker tag mirrorgooglecontainers/kube-scheduler-amd64:v1.13.3 k8s.gcr.io/kube-scheduler:v1.13.3
+    docker pull mirrorgooglecontainers/kube-apiserver:v1.15.0
+    docker pull mirrorgooglecontainers/kube-controller-manager:v1.15.0
+    docker pull mirrorgooglecontainers/kube-scheduler:v1.15.0
+    docker pull mirrorgooglecontainers/kube-proxy:v1.15.0
+    docker pull mirrorgooglecontainers/pause:3.1
+    docker pull mirrorgooglecontainers/etcd:3.3.10
+    docker pull coredns/coredns:1.3.1
+
+    docker tag mirrorgooglecontainers/kube-proxy:v1.15.0 k8s.gcr.io/kube-proxy:v1.15.0
+    docker tag mirrorgooglecontainers/kube-apiserver:v1.15.0 k8s.gcr.io/kube-apiserver:v1.15.0
+    docker tag mirrorgooglecontainers/kube-controller-manager:v1.15.0 k8s.gcr.io/kube-controller-manager:v1.15.0
+    docker tag mirrorgooglecontainers/kube-scheduler:v1.15.0 k8s.gcr.io/kube-scheduler:v1.15.0
     docker tag mirrorgooglecontainers/pause:3.1 k8s.gcr.io/pause:3.1
-    docker tag mirrorgooglecontainers/etcd-amd64:3.2.24 k8s.gcr.io/etcd:3.2.24
-    docker tag coredns/coredns:1.2.6 k8s.gcr.io/coredns:1.2.6
+    docker tag mirrorgooglecontainers/etcd:3.3.10 k8s.gcr.io/etcd:3.3.10
+    docker tag coredns/coredns:1.3.1 k8s.gcr.io/coredns:1.3.1
 
     return 0
 }
@@ -286,17 +296,23 @@ function install_cluster_master()
             return 1;
         fi
 
-        echo ""'
-apiVersion: kubeadm.k8s.io/v1beta1
+        index=$1-1
+        cd ~
+        rm -rf kubeadm-config.yaml
+        echo """
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: """${K8S_MASTER_IP_LIST[$index]}"""
+  bindPort: 6443
+---
+apiVersion: kubeadm.k8s.io/v1beta2
 kind: ClusterConfiguration
-kubernetesVersion: 1.13.3
-apiServer:
-  certSANs:
-  - "'""${K8S_KEEPALIVED_VIP}""'"
-controlPlaneEndpoint: "'""${K8S_KEEPALIVED_VIP}""'"
-'"" >> kubeadm-config.yaml
+kubernetesVersion: v1.15.0
+""" >> kubeadm-config.yaml
 
         kubeadm init --config=kubeadm-config.yaml
+        # 卸载 kubeadm reset \ rm -rf /var/lib/etcd
 
         su ${SOFTWARE_USER_NAME} -c 'mkdir -p $HOME/.kube'
         cp -i /etc/kubernetes/admin.conf /home/${SOFTWARE_USER_NAME}/.kube/config
@@ -305,9 +321,9 @@ controlPlaneEndpoint: "'""${K8S_KEEPALIVED_VIP}""'"
         count=1
         for host in ${K8S_MASTER_IP_LIST[@]}; do
             if [ ${count} == 1 ]; then
-                echo "master${count}.${HOST_NAME_DOMAIN} ${host}" >> /etc/hosts
+                echo "${host} master${count}.${HOST_NAME_DOMAIN}" >> /etc/hosts
             else
-                echo "master${count}.${HOST_NAME_DOMAIN} ${host}" >> /etc/hosts
+                echo "${host} master${count}.${HOST_NAME_DOMAIN}" >> /etc/hosts
 
                 scp /etc/kubernetes/pki/ca.crt root@$host:
                 scp /etc/kubernetes/pki/ca.key root@$host:
@@ -343,7 +359,7 @@ controlPlaneEndpoint: "'""${K8S_KEEPALIVED_VIP}""'"
         mv /root/etcd-ca.key /etc/kubernetes/pki/etcd/ca.key
         mv /root/admin.conf /etc/kubernetes/admin.conf
 
-        ${K8S_MASTER_JOIN_CMD} --experimental-control-plane
+        ${K8S_MASTER_JOIN_CMD}
     fi
 
     return 0;
