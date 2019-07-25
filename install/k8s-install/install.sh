@@ -127,20 +127,20 @@ net.bridge.bridge-nf-call-iptables = 1
 
 function pre_install_k8s()
 {
-    check_user_group ${SOFTWARE_USER_GROUP}
-    if [ $? != 0 ]; then
-    	groupadd ${SOFTWARE_USER_GROUP}
-
-    	echo "Add user group ${SOFTWARE_USER_GROUP} success."
-    fi
-
-    check_user ${SOFTWARE_USER_NAME}
-    if [ $? != 0 ]; then
-    	useradd -g ${SOFTWARE_USER_GROUP} -m ${SOFTWARE_USER_NAME}
-        usermod -L ${SOFTWARE_USER_NAME}
-
-        echo "Add user ${SOFTWARE_USER_NAME} success."
-    fi
+#    check_user_group ${SOFTWARE_USER_GROUP}
+#    if [ $? != 0 ]; then
+#    	groupadd ${SOFTWARE_USER_GROUP}
+#
+#    	echo "Add user group ${SOFTWARE_USER_GROUP} success."
+#    fi
+#
+#    check_user ${SOFTWARE_USER_NAME}
+#    if [ $? != 0 ]; then
+#    	useradd -g ${SOFTWARE_USER_GROUP} -m ${SOFTWARE_USER_NAME}
+#        usermod -L ${SOFTWARE_USER_NAME}
+#
+#        echo "Add user ${SOFTWARE_USER_NAME} success."
+#    fi
 
     cd /etc/yum.repos.d/
     rm -rf /etc/yum.repos.d/docker-ce.repo*
@@ -217,7 +217,7 @@ global_defs {
    notification_email_from Alexandre.Cassen@firewall.loc
    smtp_server 127.0.0.1
    smtp_connect_timeout 30
-   router_id master1.k8s.projn.com #备份调度器的主机名
+   router_id master1."""${HOST_NAME_DOMAIN}""" #备份调度器的主机名
 }
 
 vrrp_instance VI_1 {
@@ -255,7 +255,7 @@ global_defs {
    notification_email_from Alexandre.Cassen@firewall.loc
    smtp_server 127.0.0.1
    smtp_connect_timeout 30
-   router_id master"""${1}""".k8s.projn.com #备份调度器的主机名
+   router_id master"""${1}"""."""${HOST_NAME_DOMAIN}""" #备份调度器的主机名
 }
 
 vrrp_instance VI_1 {
@@ -309,14 +309,19 @@ localAPIEndpoint:
 apiVersion: kubeadm.k8s.io/v1beta2
 kind: ClusterConfiguration
 kubernetesVersion: v1.15.0
+networking:
+  serviceSubnet: """"${K8S_SERVICE_IP_SEGMENT}""""
+  podSubnet: """"${K8S_PODS_IP_SEGMENT}""""
+controlPlaneEndpoint: """${K8S_KEEPALIVED_VIP}""":6443
 """ >> kubeadm-config.yaml
 
-        kubeadm init --config=kubeadm-config.yaml
-        # 卸载 kubeadm reset \ rm -rf /var/lib/etcd
+        kubeadm init --config=kubeadm-config.yaml --upload-certs
+        # 卸载 kubectl drain <node name> --delete-local-data --force --ignore-daemonsets
+        # kubectl delete node <node name>
+        # kubeadm reset
 
-        su ${SOFTWARE_USER_NAME} -c 'mkdir -p $HOME/.kube'
-        cp -i /etc/kubernetes/admin.conf /home/${SOFTWARE_USER_NAME}/.kube/config
-        chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} /home/${SOFTWARE_USER_NAME}/.kube/config
+        mkdir -p $HOME/.kube
+        cp -i /etc/kubernetes/admin.conf /root/.kube/config
 
         count=1
         for host in ${K8S_MASTER_IP_LIST[@]}; do
@@ -338,7 +343,7 @@ kubernetesVersion: v1.15.0
             ((count++))
         done
 
-        su ${SOFTWARE_USER_NAME} -c 'kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d "\n")"'
+        kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d "\n")"
         #kubectl get pod -n kube-system -w
 
     else
@@ -347,6 +352,11 @@ kubernetesVersion: v1.15.0
             echo "config keepalived master failed,check it please."
             return 1;
         fi
+
+        count=1
+        for host in ${K8S_MASTER_IP_LIST[@]}; do
+            echo "${host} master${count}.${HOST_NAME_DOMAIN}" >> /etc/hosts
+        done
 
         mkdir -p /etc/kubernetes/pki/etcd
         mv /root/ca.crt /etc/kubernetes/pki/
@@ -359,10 +369,27 @@ kubernetesVersion: v1.15.0
         mv /root/etcd-ca.key /etc/kubernetes/pki/etcd/ca.key
         mv /root/admin.conf /etc/kubernetes/admin.conf
 
-        ${K8S_MASTER_JOIN_CMD}
+        ${K8S_MASTER_JOIN_CMD} --control-plane
+
+        #kubectl describe node
     fi
 
     return 0;
+}
+
+function install_flannel()
+{
+    cd ~
+    curl -O https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+    #flannel:v0.11.0-amd64 depend on kube-flannel.yml,flanneld启动参数加上–iface=<iface-name>
+    docker image pull quay-mirror.qiniu.com/coreos/flannel:v0.11.0-amd64
+
+    docker tag quay-mirror.qiniu.com/coreos/flannel:v0.11.0-amd64 quay.io/coreos/flannel:v0.11.0-amd64
+    #docker image pull quay.io/coreos/flannel:v0.11.0-amd64
+
+    kubectl apply -f  kube-flannel.yml
+
 }
 
 function install_node()
@@ -381,7 +408,7 @@ function install_node()
 function install_dashboard()
 {
     # https://github.com/kubernetes/dashboard
-    kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta2/aio/deploy/recommended.yaml
 
     echo """
 apiVersion: v1
@@ -409,9 +436,7 @@ subjects:
 
   kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
 
-  docker pull mirrorgooglecontainers/kubernetes-dashboard-amd64:v1.10.1
-
-  docker tag mirrorgooglecontainers/kubernetes-dashboard-amd64:v1.10.1 k8s.gcr.io/kubernetes-dashboard-amd64:v1.10.1
+  docker image pull kubernetesui/dashboard:v2.0.0-beta2
 
 }
 
