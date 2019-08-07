@@ -390,6 +390,12 @@ function install_flannel()
 
     kubectl apply -f  kube-flannel.yml
 
+    # 修改ConfigMap的kube-system/kube-proxy中的config.conf，mode: “ipvs”
+    kubectl edit cm kube-proxy -n kube-system
+
+    # 重启各个节点上的kube-proxy pod
+    kubectl get pod -n kube-system | grep kube-proxy | awk '{system("kubectl delete pod "$1" -n kube-system")}'
+
 }
 
 function install_node()
@@ -400,15 +406,88 @@ function install_node()
         return 1;
     fi
     hostnamectl set-hostname node${1}.${HOST_NAME_DOMAIN}
+
+    echo "1" > /proc/sys/net/ipv4/ip_forward
     ${K8S_MASTER_JOIN_CMD}
 
     return 0
 }
 
+function install_gluster()
+{
+    yum install centos-release-gluster -y
+    yum --enablerepo=centos-gluster*test install glusterfs-server -y
+    systemctl start glusterd.service
+
+    gluster peer probe node2.paas.projn.com
+    gluster peer probe node3.paas.projn.com
+
+    gluster peer status
+
+    yum install heketi heketi-client
+
+    ssh-keygen -f /etc/heketi/heketi_key -t rsa -N ''
+    chown heketi:heketi /etc/heketi/heketi_key
+
+    for host in node1 node2 node3 ;do \
+        ssh-copy-id -i /etc/heketi/heketi_key.pub root@${host}.paas.projn.com; done
+
+    systemctl enable heketi
+    systemctl start heketi
+
+    curl http://node1.paas.projn.com:8080/hello
+
+    export HEKETI_CLI_SERVER=http://node1.paas.projn.com:8080
+    heketi -cli topology load --json=/etc/heketi/heketi-cluster.json
+
+    heketi-cli volume create --size=1
+
+
+}
+
+function install_helm()
+{
+    curl -O https://get.helm.sh/helm-v2.14.1-linux-amd64.tar.gz
+    tar -zxvf helm-v2.14.1-linux-amd64.tar.gz
+    cd linux-amd64/
+    cp helm /usr/local/bin/
+
+    echo """apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tiller
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: tiller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: tiller
+    namespace: kube-system""" >> helm-rbac.yaml
+
+    kubectl create -f helm-rbac.yaml
+
+    helm init --service-account tiller --skip-refresh
+
+    # kubectl taint nodes --all node-role.kubernetes.io/master-
+
+}
+
 function install_dashboard()
 {
-    # https://github.com/kubernetes/dashboard
-    kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta2/aio/deploy/recommended.yaml
+    openssl genrsa -out dashboard.key 2048
+
+    openssl req -new -key dashboard.key -out dashboard.csr
+
+    openssl x509 -req -in dashboard.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out dashboard.crt -days 3650
+
+    kubectl create secret generic kubernetes-dashboard-certs -n kube-system --from-file=dashboard.crt=./dashboard.crt --from-file=dashboard.key=./dashboard.key
 
     echo """
 apiVersion: v1
@@ -437,6 +516,9 @@ subjects:
   kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
 
   docker image pull kubernetesui/dashboard:v2.0.0-beta2
+
+  # https://github.com/kubernetes/dashboard
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta2/aio/deploy/recommended.yaml
 
 }
 
