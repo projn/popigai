@@ -410,6 +410,8 @@ function install_node()
     echo "1" > /proc/sys/net/ipv4/ip_forward
     ${K8S_MASTER_JOIN_CMD}
 
+    #kubectl label nodes node${1}.${HOST_NAME_DOMAIN} projn.com/role=node
+
     return 0
 }
 
@@ -437,14 +439,56 @@ function install_gluster()
 
     curl http://node1.paas.projn.com:8080/hello
 
-    export HEKETI_CLI_SERVER=http://node1.paas.projn.com:8080
+    export HEKETI_CLI_SERVER=http://heketi.paas.projn.com:8080
     heketi -cli topology load --json=/etc/heketi/heketi-cluster.json
 
     heketi-cli volume create --size=1
 
+    # create StorageClass
+
+    rm -rf heketi-storage-class.yaml
+    echo """kind: StorageClass
+apiVersion: storage.k8s.io/v1beta1
+metadata:
+  name: glusterfs
+provisioner: kubernetes.io/glusterfs
+parameters:
+  resturl: \"http://heketi.paas.projn.com:8080\"
+  restauthenabled: \"false\"
+  #restuser: \"\"
+  #restuserkey: \"\" """ >> glusterfs-storage-class.yaml
+
+    echo """kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: glusterfs-pvc
+spec:
+  storageClassName: glusterfs
+  # ReadWriteOnce：简写RWO，读写权限，且只能被单个node挂载；
+  # ReadOnlyMany：简写ROX，只读权限，允许被多个node挂载；
+  # ReadWriteMany：简写RWX，读写权限，允许被多个node挂载；
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # 注意格式，不能写“GB”
+      storage: 1Gi""" >> glusterfs-pvc.yaml
+
+
+
+  glusterfs-dynamic-pvc.yaml
 
 }
 
+function install_ingress()
+{
+wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
+# add deployment spec : hostNetwork: true
+kubectl apply -f mandatory.yaml
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/baremetal/service-nodeport.yaml
+
+}
 function install_helm()
 {
     curl -O https://get.helm.sh/helm-v2.14.1-linux-amd64.tar.gz
@@ -476,14 +520,14 @@ subjects:
     helm init --service-account tiller --skip-refresh
 
     # kubectl taint nodes --all node-role.kubernetes.io/master-
+    # kubectl taint nodes master.XXX.com node-role.kubernetes.io/master=:NoSchedule
+
+    # helm repo add stable https://kubernetes.oss-cn-hangzhou.aliyuncs.com/charts
 
 }
 
 function install_dashboard()
 {
-    openssl genrsa -out dashboard.key 2048
-
-    openssl req -new -key dashboard.key -out dashboard.csr
 
     openssl x509 -req -in dashboard.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out dashboard.crt -days 3650
 
