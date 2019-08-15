@@ -426,6 +426,9 @@ function install_gluster()
 
     gluster peer status
 
+    # k8s各节点执行 yum install centos-release-gluster -y
+    # yum --enablerepo=centos-gluster*test install glusterfs-fuse -y
+
     yum install heketi heketi-client
 
     ssh-keygen -f /etc/heketi/heketi_key -t rsa -N ''
