@@ -63,6 +63,9 @@ function init_host_step1()
     setenforce 0
     sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/selinux/config
 
+    systemctl stop NetworkManager
+    systemctl disable NetworkManager
+
     # 关闭交换分区
     swapoff -a
     yes | cp /etc/fstab /etc/fstab_bak
@@ -461,6 +464,8 @@ parameters:
   #restuser: \"\"
   #restuserkey: \"\" """ >> glusterfs-storage-class.yaml
 
+   kubectl apply -f glusterfs-storage-class.yaml
+
     echo """kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -477,9 +482,7 @@ spec:
       # 注意格式，不能写“GB”
       storage: 1Gi""" >> glusterfs-pvc.yaml
 
-
-
-  glusterfs-dynamic-pvc.yaml
+    kubectl apply -f glusterfs-pvc.yaml
 
 }
 

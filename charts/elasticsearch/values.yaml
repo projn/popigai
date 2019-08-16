@@ -123,7 +123,7 @@ nodeAffinity:
   requiredDuringSchedulingIgnoredDuringExecution:
     nodeSelectorTerms:
       - matchExpressions:
-          - key: node-role.kubernetes.io/master
+          - key: node-role.kubernetes.io/node
             operator: Exists
 
 # The default is to deploy all pods serially. By setting this to parallel all pods are started at
