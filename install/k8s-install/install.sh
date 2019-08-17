@@ -63,8 +63,8 @@ function init_host_step1()
     setenforce 0
     sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/selinux/config
 
-    systemctl stop NetworkManager
-    systemctl disable NetworkManager
+    #systemctl stop NetworkManager
+    #systemctl disable NetworkManager
 
     # 关闭交换分区
     swapoff -a
@@ -85,6 +85,12 @@ function init_host_step1()
     #vim /etc/default/grub
     # GRUB_DEFAULT=saved --> GRUB_DEFAULT=0
     #grub2-mkconfig -o /boot/grub2/grub.cfg
+
+    src='GRUB_DEFAULT=saved'
+    dst='GRUB_DEFAULT=0'
+    sed -i "s#$src#$dst#g" /etc/default/grub
+
+    grub2-mkconfig -o /boot/grub2/grub.cfg
 
     # 重启以更换内核
     reboot
@@ -162,7 +168,7 @@ function pre_install_k8s()
     mkdir -p /etc/docker
     rm -rf /etc/docker/daemon.json
     echo "{"  >> /etc/docker/daemon.json
-    echo '"registry-mirrors": ["https://5q5g7ksn.mirror.aliyuncs.com"],'  >> /etc/docker/daemon.json
+    echo '"registry-mirrors": ["http://5q5g7ksn.mirror.aliyuncs.com"],'  >> /etc/docker/daemon.json
     echo '"exec-opts": ["native.cgroupdriver=systemd"]'  >> /etc/docker/daemon.json
     echo "}"  >> /etc/docker/daemon.json
 
@@ -176,20 +182,20 @@ function pre_install_k8s()
 
     #kubeadm config images list
 
-    docker pull mirrorgooglecontainers/kube-apiserver:v1.15.0
-    docker pull mirrorgooglecontainers/kube-controller-manager:v1.15.0
-    docker pull mirrorgooglecontainers/kube-scheduler:v1.15.0
-    docker pull mirrorgooglecontainers/kube-proxy:v1.15.0
-    docker pull mirrorgooglecontainers/pause:3.1
-    docker pull mirrorgooglecontainers/etcd:3.3.10
+    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kube-apiserver:v1.15.2
+    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kube-controller-manager:v1.15.2
+    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kube-scheduler:v1.15.2
+    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kube-proxy:v1.15.2
+    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.1
+    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/etcd:3.3.10
     docker pull coredns/coredns:1.3.1
 
-    docker tag mirrorgooglecontainers/kube-proxy:v1.15.0 k8s.gcr.io/kube-proxy:v1.15.0
-    docker tag mirrorgooglecontainers/kube-apiserver:v1.15.0 k8s.gcr.io/kube-apiserver:v1.15.0
-    docker tag mirrorgooglecontainers/kube-controller-manager:v1.15.0 k8s.gcr.io/kube-controller-manager:v1.15.0
-    docker tag mirrorgooglecontainers/kube-scheduler:v1.15.0 k8s.gcr.io/kube-scheduler:v1.15.0
-    docker tag mirrorgooglecontainers/pause:3.1 k8s.gcr.io/pause:3.1
-    docker tag mirrorgooglecontainers/etcd:3.3.10 k8s.gcr.io/etcd:3.3.10
+    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-proxy:v1.15.2 k8s.gcr.io/kube-proxy:v1.15.2
+    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-apiserver:v1.15.2 k8s.gcr.io/kube-apiserver:v1.15.2
+    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-controller-manager:v1.15.2 k8s.gcr.io/kube-controller-manager:v1.15.2
+    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-scheduler:v1.15.2 k8s.gcr.io/kube-scheduler:v1.15.2
+    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.1 k8s.gcr.io/pause:3.1
+    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/etcd:3.3.10 k8s.gcr.io/etcd:3.3.10
     docker tag coredns/coredns:1.3.1 k8s.gcr.io/coredns:1.3.1
 
     return 0
@@ -225,7 +231,7 @@ global_defs {
 
 vrrp_instance VI_1 {
     state MASTER #主调度器的初始角色 MASTER BACKUP
-    interface ens33
+    interface """${K8S_NETWORK_INTERFACE_NAME}"""
     virtual_router_id 51
     priority 100 #主调度器的选举优先级
     advert_int 1
@@ -263,7 +269,7 @@ global_defs {
 
 vrrp_instance VI_1 {
     state BACKUP #主调度器的初始角色 MASTER BACKUP
-    interface ens33
+    interface """${K8S_NETWORK_INTERFACE_NAME}"""
     virtual_router_id 51
     priority 100 #主调度器的选举优先级
     advert_int 1
@@ -311,7 +317,7 @@ localAPIEndpoint:
 ---
 apiVersion: kubeadm.k8s.io/v1beta2
 kind: ClusterConfiguration
-kubernetesVersion: v1.15.0
+kubernetesVersion: v1.15.2
 networking:
   serviceSubnet: """"${K8S_SERVICE_IP_SEGMENT}""""
   podSubnet: """"${K8S_PODS_IP_SEGMENT}""""
@@ -423,7 +429,9 @@ function install_gluster()
     yum install centos-release-gluster -y
     yum --enablerepo=centos-gluster*test install glusterfs-server -y
     systemctl start glusterd.service
+    systemctl enable glusterd.service
 
+    # master
     gluster peer probe node2.paas.projn.com
     gluster peer probe node3.paas.projn.com
 
@@ -445,8 +453,74 @@ function install_gluster()
 
     curl http://node1.paas.projn.com:8080/hello
 
+    # 编辑 /etc/heketi/heketi.json
+    # "executor": "ssh"
+    # "keyfile": "/etc/heketi/heketi_key",
+    #      "user": "root",
+    #      "port": "22",
+    #      "fstab": "/etc/fstab"
+
+    echo '''
+    {
+    "clusters": [
+        {
+            "nodes": [
+                {
+                    "node": {
+                        "hostnames": {
+                            "manage": [
+                                "192.168.37.143"
+                            ],
+                            "storage": [
+                                "192.168.37.143"
+                            ]
+                        },
+                        "zone": 1
+                    },
+                    "devices": [
+                        "/dev/sdb"
+                    ]
+                },
+                {
+                    "node": {
+                        "hostnames": {
+                            "manage": [
+                                "192.168.37.144"
+                            ],
+                            "storage": [
+                                "192.168.37.144"
+                            ]
+                        },
+                        "zone": 2
+                    },
+                    "devices": [
+                        "/dev/sdb"
+                    ]
+                },
+                {
+                    "node": {
+                        "hostnames": {
+                            "manage": [
+                                "192.168.37.145"
+                            ],
+                            "storage": [
+                                "192.168.37.145"
+                            ]
+                        },
+                        "zone": 3
+                    },
+                    "devices": [
+                        "/dev/sdb"
+                    ]
+                }
+            ]
+        }
+    ]
+}
+    ''' >> /etc/heketi/heketi-cluster.json
+
     export HEKETI_CLI_SERVER=http://heketi.paas.projn.com:8080
-    heketi -cli topology load --json=/etc/heketi/heketi-cluster.json
+    heketi-cli topology load --json=/etc/heketi/heketi-cluster.json
 
     heketi-cli volume create --size=1
 
@@ -530,12 +604,17 @@ subjects:
 
     # helm repo add stable https://kubernetes.oss-cn-hangzhou.aliyuncs.com/charts
 
+    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/tiller:v2.14.1
+    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/tiller:v2.14.1 gcr.io/kubernetes-helm/tiller:v2.14.1
+
+
 }
 
 function install_dashboard()
 {
+    openssl genrsa -out dashboard.key 2048
 
-    openssl x509 -req -in dashboard.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out dashboard.crt -days 3650
+    openssl req -new -x509 -key dashboard.key -out dashboard.crt -days 3650
 
     kubectl create secret generic kubernetes-dashboard-certs -n kube-system --from-file=dashboard.crt=./dashboard.crt --from-file=dashboard.key=./dashboard.key
 
@@ -565,10 +644,11 @@ subjects:
 
   kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
 
-  docker image pull kubernetesui/dashboard:v2.0.0-beta2
+  docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kubernetes-dashboard-amd64:v1.10.1
+  docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kubernetes-dashboard-amd64:v1.10.1 k8s.gcr.io/kubernetes-dashboard-amd64:v1.10.1
 
   # https://github.com/kubernetes/dashboard
-  kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta2/aio/deploy/recommended.yaml
+  # kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta2/aio/deploy/recommended.yaml
 
 }
 
