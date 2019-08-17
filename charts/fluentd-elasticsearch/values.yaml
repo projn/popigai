@@ -9,16 +9,16 @@ image:
 ## Configure resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
-resources: {}
-  # limits:
-  #   cpu: 100m
-  #   memory: 500Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 200Mi
+resources:
+  limits:
+    cpu: 100m
+    memory: 500Mi
+  requests:
+    cpu: 100m
+    memory: 200Mi
 
 elasticsearch:
-  host: 'elasticsearch-client'
+  host: 'elasticsearch-master'
   port: 9200
   scheme: 'http'
   ssl_version: TLSv1_2
