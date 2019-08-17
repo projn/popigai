@@ -107,7 +107,7 @@ ingress:
     # kubernetes.io/tls-acme: "true"
   path: /
   hosts:
-    - grafana.paas.projn.com
+    - kibana.paas.projn.com
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
