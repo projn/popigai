@@ -182,18 +182,19 @@ function pre_install_k8s()
 
     #kubeadm config images list
 
-    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kube-apiserver:v1.15.2
-    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kube-controller-manager:v1.15.2
-    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kube-scheduler:v1.15.2
-    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kube-proxy:v1.15.2
+    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kube-apiserver:v${SOFTWARE_SOURCE_PACKAGE_VERSION}
+    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kube-controller-manager:v${SOFTWARE_SOURCE_PACKAGE_VERSION}
+    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kube-scheduler:v${SOFTWARE_SOURCE_PACKAGE_VERSION}
+    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/kube-proxy:v${SOFTWARE_SOURCE_PACKAGE_VERSION}
     docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.1
     docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/etcd:3.3.10
     docker pull coredns/coredns:1.3.1
 
-    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-proxy:v1.15.2 k8s.gcr.io/kube-proxy:v1.15.2
-    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-apiserver:v1.15.2 k8s.gcr.io/kube-apiserver:v1.15.2
-    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-controller-manager:v1.15.2 k8s.gcr.io/kube-controller-manager:v1.15.2
-    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-scheduler:v1.15.2 k8s.gcr.io/kube-scheduler:v1.15.2
+    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-proxy:v${SOFTWARE_SOURCE_PACKAGE_VERSION} k8s.gcr.io/kube-proxy:v${SOFTWARE_SOURCE_PACKAGE_VERSION}
+    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-apiserver:v${SOFTWARE_SOURCE_PACKAGE_VERSION} k8s.gcr.io/kube-apiserver:v${SOFTWARE_SOURCE_PACKAGE_VERSION}
+    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-apiserver:v${SOFTWARE_SOURCE_PACKAGE_VERSION} k8s.gcr.io/kube-apiserver:v${SOFTWARE_SOURCE_PACKAGE_VERSION}
+    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-controller-manager:v${SOFTWARE_SOURCE_PACKAGE_VERSION} k8s.gcr.io/kube-controller-manager:v${SOFTWARE_SOURCE_PACKAGE_VERSION}
+    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/kube-scheduler:v${SOFTWARE_SOURCE_PACKAGE_VERSION} k8s.gcr.io/kube-scheduler:v${SOFTWARE_SOURCE_PACKAGE_VERSION}
     docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.1 k8s.gcr.io/pause:3.1
     docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/etcd:3.3.10 k8s.gcr.io/etcd:3.3.10
     docker tag coredns/coredns:1.3.1 k8s.gcr.io/coredns:1.3.1
@@ -203,7 +204,7 @@ function pre_install_k8s()
 
 function install_single_master()
 {
-    kubeadm init --kubernetes-version=v1.13.3 --pod-network-cidr=${K8S_PODS_IP_SEGMENT} --service-cidr=${K8S_SERVICE_IP_SEGMENT}
+    kubeadm init --kubernetes-version=v${SOFTWARE_SOURCE_PACKAGE_VERSION} --pod-network-cidr=${K8S_PODS_IP_SEGMENT} --service-cidr=${K8S_SERVICE_IP_SEGMENT}
 
     su ${SOFTWARE_USER_NAME} -c 'mkdir -p $HOME/.kube'
     cp -i /etc/kubernetes/admin.conf /home/${SOFTWARE_USER_NAME}/.kube/config
@@ -317,7 +318,7 @@ localAPIEndpoint:
 ---
 apiVersion: kubeadm.k8s.io/v1beta2
 kind: ClusterConfiguration
-kubernetesVersion: v1.15.2
+kubernetesVersion: v""""${SOFTWARE_SOURCE_PACKAGE_VERSION}""""
 networking:
   serviceSubnet: """"${K8S_SERVICE_IP_SEGMENT}""""
   podSubnet: """"${K8S_PODS_IP_SEGMENT}""""
