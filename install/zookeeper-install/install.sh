@@ -25,13 +25,6 @@ function check_install()
       return 1
     fi
 
-    service_file_path=${CURRENT_WORK_DIR}/${SOFTWARE_SERVICE_NAME}
-    check_file ${service_file_path}
-    if [ $? != 0 ]; then
-    	echo "Service file ${service_file_path} do not exist."
-      return 1
-    fi
-
     echo "Check finish."
     return 0
 }
@@ -82,53 +75,21 @@ function install()
         return 1
     fi
 
-    check_user_group ${SOFTWARE_USER_GROUP}
-    if [ $? != 0 ]; then
-    	groupadd ${SOFTWARE_USER_GROUP}
-
-    	echo "Add user group ${SOFTWARE_USER_GROUP} success."
-    fi
-
-    check_user ${SOFTWARE_USER_NAME}
-    if [ $? != 0 ]; then
-    	useradd -g ${SOFTWARE_USER_GROUP} -m ${SOFTWARE_USER_NAME}
-        usermod -L ${SOFTWARE_USER_NAME}
-
-        echo "Add user ${SOFTWARE_USER_NAME} success."
-    fi
-
     mkdir -p ${SOFTWARE_INSTALL_PATH}
-    chmod u=rwx,g=rx,o=r ${SOFTWARE_INSTALL_PATH}
-    chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
 
     mkdir -p ${SOFTWARE_DATA_PATH}
-    chmod u=rwx,g=rx,o=r ${SOFTWARE_DATA_PATH}
-    chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_DATA_PATH}
 
     mkdir -p ${SOFTWARE_LOG_PATH}
-    chmod u=rwx,g=rx,o=r ${SOFTWARE_LOG_PATH}
-    chown ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_LOG_PATH}
 
     package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
     tar zxvf ${package_path} -C ${CUR_WORK_DIR}/
     cp -rf ${CUR_WORK_DIR}/${SOFTWARE_INSTALL_PACKAGE_NAME}/* ${SOFTWARE_INSTALL_PATH}
-
-    chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_INSTALL_PATH}
 
     return 0
 }
 
 function config()
 {
-    cp ${CURRENT_WORK_DIR}/${SOFTWARE_SERVICE_NAME} /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    src=SOFTWARE_USER_NAME
-    dst=${SOFTWARE_USER_NAME}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
-
-    src=SOFTWARE_INSTALL_PATH
-    dst=${SOFTWARE_INSTALL_PATH}
-    sed -i "s#$src#$dst#g" /etc/init.d/${SOFTWARE_SERVICE_NAME}
 
     sample_config_path=${SOFTWARE_INSTALL_PATH}/conf/zoo_sample.cfg
     config_path=${SOFTWARE_INSTALL_PATH}/conf/zoo.cfg
@@ -150,7 +111,6 @@ function config()
     done
 
     echo "${ZOOKEEPER_MYID}">>${SOFTWARE_DATA_PATH}/myid
-    chown -R ${SOFTWARE_USER_NAME}:${SOFTWARE_USER_GROUP} ${SOFTWARE_DATA_PATH}/myid
 
     log_config_path=${SOFTWARE_INSTALL_PATH}/conf/log4j.properties
     src='zookeeper.log.dir=.'
@@ -160,9 +120,6 @@ function config()
     src='zookeeper.tracelog.dir=.'
     dst='zookeeper.tracelog.dir='${SOFTWARE_DATA_PATH}
     sed -i "s#$src#$dst#g" ${log_config_path}
-
-    chmod 755 /etc/init.d/${SOFTWARE_SERVICE_NAME}
-    chkconfig --add ${SOFTWARE_SERVICE_NAME}
 
     echo "Install success."
 }
@@ -190,9 +147,6 @@ function uninstall()
     rm -rf ${SOFTWARE_INSTALL_PATH}
     rm -rf ${SOFTWARE_LOG_PATH}
     rm -rf ${SOFTWARE_DATA_PATH}
-
-    chkconfig --del ${SOFTWARE_SERVICE_NAME}
-    rm /etc/init.d/${SOFTWARE_SERVICE_NAME}
 
     echo "Uninstall success."
     return 0
