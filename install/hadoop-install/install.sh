@@ -67,7 +67,7 @@ function install()
         return 1
     fi
 
-    # 192.168.37.170           # 192.168.37.170           # 192.168.37.170
+    # 192.168.37.170           # 192.168.37.171           # 192.168.37.172
     # zookeeper                # zookeeper                # zookeeper
     #
     # journalnode              # journalnode              # journalnode
@@ -401,7 +401,7 @@ bigdata1
 bigdata2
 bigdata3
 
-
+#三节点都要运行
 zkServer.sh start
 
 #journalnode节点上启动journalnode进程
@@ -413,14 +413,14 @@ scp -r /opt/datastore/hadoop/dfs bigdata2:/opt/datastore/hadoop/
 #格式化ZKFC(任选一个namenode节点格式化)
 hdfs zkfc -formatZK
 
-#启动hdfs
+#启动hdfs,bigdata1运行
 start-dfs.sh
-#启动yarn
+#启动yarn，bigdata2运行
 start-yarn.sh
 # 需要在另外一个resourcemanager节点手动启动resourcemanager
 yarn-daemon.sh start resourcemanager
 
-#启动 mapreduce 任务历史服务器
+#启动 mapreduce 任务历史服务器,bigdata1运行
 mr-jobhistory-daemon.sh start historyserver
 
 hdfs dfsadmin -report
@@ -443,7 +443,6 @@ vi slaves
 bigdata1
 bigdata2
 bigdata3
-
 
 
   cp /opt/software/spark/yarn/spark-2.4.3-yarn-shuffle.jar /opt/software/hadoop/share/hadoop/yarn/
