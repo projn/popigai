@@ -74,6 +74,12 @@ function install()
         return 1
     fi
 
+    mkdir -p ${SOFTWARE_INSTALL_PATH}
+
+    mkdir -p ${SOFTWARE_DATA_PATH}
+
+    mkdir -p ${SOFTWARE_LOG_PATH}
+
     package_path=${CURRENT_WORK_DIR}/${SOFTWARE_SOURCE_PACKAGE_NAME}
     tar zxvf ${package_path} -C ${CUR_WORK_DIR}/
     cp -rf ${CUR_WORK_DIR}/${SOFTWARE_INSTALL_PACKAGE_NAME}/* ${SOFTWARE_INSTALL_PATH}
