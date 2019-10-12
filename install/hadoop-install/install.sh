@@ -457,9 +457,15 @@ cd /opt/software/spark/conf
 spark.shuffle.service.enabled true
 spark.shuffle.service.port 7337
 
+spark.dynamicAllocation.enabled true  //开启动态资源分配
+spark.dynamicAllocation.minExecutors 1  //每个Application最小分配的executor数
+spark.dynamicAllocation.maxExecutors 30  //每个Application最大并发分配的executor数
+spark.dynamicAllocation.schedulerBacklogTimeout 1s
+spark.dynamicAllocation.sustainedSchedulerBacklogTimeout 5s
+
 spark.sql.hive.thriftServer.singleSession true
 
-vi
+vi /etc/profile
 export SPARK_DIST_CLASSPATH=$(/opt/software/hadoop/bin/hadoop classpath)
 export HADOOP_CONF_DIR=/opt/software/hadoop/etc/hadoop
 export YARN_CONF_DIR=/opt/software/hadoop/etc/hadoop
@@ -468,6 +474,17 @@ export SPARK_CONF_DIR=/opt/software/spark/conf
 
 # 为Spark Thrift Server分配的内存大小
 export SPARK_DAEMON_MEMORY=1024m
+
+vi yarn-site.xml
+
+<property>
+　　<name>yarn.nodemanager.aux-services</name>
+　　<value>spark_shuffle,mapreduce_shuffle</value>
+</property>
+<property>
+　　<name>yarn.nodemanager.aux-services.spark_shuffle.class</name>
+　　<value>org.apache.spark.network.yarn.YarnShuffleService</value>
+</property>
 
     echo "Install success."
 
